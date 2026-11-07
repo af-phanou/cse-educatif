@@ -69,6 +69,10 @@ services:
       - establishments_panel_token
     networks:
       - cse_private
+      # Reseau bridge standard dedie : Docker 29 peut ignorer la publication
+      # sur l'hote lorsque le service n'a que le reseau internal:true.
+      # Ce reseau ne partage aucun service public; le port reste sur loopback.
+      - cse_panel_bridge
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -89,3 +93,7 @@ secrets:
     file: ./secrets/establishments_db_password
   establishments_panel_token:
     file: ./secrets/establishments_panel_token
+
+networks:
+  cse_panel_bridge:
+    driver: bridge
