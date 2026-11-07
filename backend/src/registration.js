@@ -9,13 +9,17 @@
 const { matchKey, normalizeNumber } = require("./eligibility");
 
 const LOOKUP_ACTIVE_ROSTER_SQL = [
-  "SELECT active.id AS import_id, matching.id AS entry_id",
-  "FROM (SELECT id FROM cse.roster_imports WHERE status = 'active' LIMIT 1) active",
+  "SELECT est.code AS establishment_code, active.id AS import_id, matching.id AS entry_id",
+  "FROM cse.establishments est",
+  "LEFT JOIN LATERAL (",
+  "  SELECT id FROM cse.roster_imports WHERE status = 'active' LIMIT 1",
+  ") active ON TRUE",
   "LEFT JOIN LATERAL (",
   "  SELECT id FROM cse.roster_entries e",
-  "  WHERE e.import_id = active.id AND e.match_key = $1",
+  "  WHERE e.import_id = active.id AND e.match_key = $2",
   "  LIMIT 2",
-  ") matching ON TRUE"
+  ") matching ON TRUE",
+  "WHERE est.code = $1 AND est.active = true"
 ].join("\n");
 
 function cleanText(value, field, max, required = false) {
@@ -37,9 +41,9 @@ function validateRegistration(input) {
 
   const firstName = cleanText(input.firstName, "prenom", 120, true);
   const lastName = cleanText(input.lastName, "nom", 120, true);
-  const establishmentRaw = cleanText(input.establishmentNumber, "etablissement", 40, true);
+  const establishmentRaw = cleanText(input.establishmentNumber, "etablissement", 20, true);
   const establishmentNumber = normalizeNumber(establishmentRaw);
-  if (!/^[A-Z0-9][A-Z0-9._/-]{0,39}$/.test(establishmentNumber)) {
+  if (!/^[A-Z0-9][A-Z0-9._/-]{0,19}$/.test(establishmentNumber)) {
     throw new Error("Numero d'etablissement invalide.");
   }
 
@@ -75,12 +79,15 @@ async function prepareRegistration(db, input) {
   }
   const profile = validateRegistration(input);
   const key = matchKey(profile.lastName, profile.firstName, profile.establishmentNumber);
-  const query = await db.query(LOOKUP_ACTIVE_ROSTER_SQL, [key]);
+  const query = await db.query(LOOKUP_ACTIVE_ROSTER_SQL, [profile.establishmentNumber, key]);
 
-  // 0 ligne : aucun lot CSV actif ; 1 ligne / entry_id null : non trouve ;
-  // 2 lignes : homonymes ou doublons dans le CSV -> revue obligatoire.
+  // 0 ligne = etablissement inconnu/desactive, jamais eligible.
+  // Lot CSV absent = revue manuelle ; homonymes/doublons = revue manuelle.
   let internalStatus, reviewReason = null, matchedRosterEntryId = null;
   if (query.rows.length === 0) {
+    internalStatus = "manual_review";
+    reviewReason = "establishment_unavailable";
+  } else if (query.rows[0].import_id == null) {
     internalStatus = "manual_review";
     reviewReason = "no_active_roster";
   } else {
