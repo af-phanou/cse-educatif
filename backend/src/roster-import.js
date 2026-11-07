@@ -194,9 +194,10 @@ async function activateImport(pool,id) {
       "SELECT id,status,rows_count FROM cse.roster_imports",
       "WHERE id=$1 FOR UPDATE"
     ].join("\n"),[id]);
-    if(found.rowCount!==1 || found.rows[0].status!=="staged"){
+    if(found.rowCount!==1 ||
+       !["staged","archived"].includes(found.rows[0].status)){
       await client.query("ROLLBACK");
-      return {status:"not_staged"};
+      return {status:"not_activatable"};
     }
 
     const check=await client.query([
@@ -218,7 +219,7 @@ async function activateImport(pool,id) {
     );
     const changed=await client.query([
       "UPDATE cse.roster_imports SET status='active', activated_at=now()",
-      "WHERE id=$1 AND status='staged' RETURNING id"
+      "WHERE id=$1 AND status IN ('staged','archived') RETURNING id"
     ].join("\n"),[id]);
     if(changed.rowCount!==1) throw new RosterError("Impossible d'activer le lot.");
 
@@ -227,7 +228,11 @@ async function activateImport(pool,id) {
       "VALUES ($1,$2,$3,$4::jsonb)"
     ].join("\n"),[
       "roster.activated","roster_import",id,
-      JSON.stringify({rows:Number(check.rows[0].total),source:"ssh_csv_panel"})
+      JSON.stringify({
+        rows:Number(check.rows[0].total),
+        reactivated:found.rows[0].status==="archived",
+        source:"ssh_csv_panel"
+      })
     ]);
     await client.query("COMMIT");
     return {status:"active",id,rows:Number(check.rows[0].total)};
