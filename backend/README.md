@@ -466,3 +466,45 @@ des permissions et de l'audit individualisee, la verification de l'email,
 la creation des comptes avec Argon2id, un import CSV RH mensuel securise,
 un service SMTP, la suppression des dossiers expires, des sauvegardes
 testees et la conformite RGPD pour les donnees hebergees au Canada.
+
+## Etape 31 — Test de bout en bout du panneau avec une demande fictive
+
+L'outil prive src/demo-request-cli.js cree exclusivement une demande
+« DEMONSTRATION FICTIF CSE » avec l'email reserve
+demo-validation-cse@example.invalid, dans le premier etablissement actif.
+Il utilise le parcours normal de demande via le role SQL limite cse_app.
+Il ne cree aucun compte actif et n'envoie aucun email.
+
+Depuis le terminal Ubuntu du VPS, apres mise a jour du depot :
+
+~~~bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+~~~
+
+Nombre attendu : 67 tests passes, 0 echec.
+
+Creer la demande fictive (INSEREE dans PostgreSQL pour ce test) :
+
+~~~bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api node src/demo-request-cli.js create
+~~~
+
+Dans le panneau prive de validation (http://127.0.0.1:18089/),
+cliquer sur Actualiser puis trouver DEMONSTRATION FICTIF CSE.
+Cliquer sur Approuver ou Refuser afin de confirmer la prise en charge.
+Le dossier ne doit plus apparaitre parmi les demandes en attente.
+Ces decisions n'activent aucun compte salarie et n'envoient aucun email.
+
+Apres ce test, supprimer les demandes et notifications FICTIVES seulement :
+
+~~~bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/demo-request-cli.js cleanup --confirm-demo-cleanup
+~~~
+
+Le nettoyage s'applique seulement a cette combinaison exacte de nom,
+prenom et adresse example.invalid. Les entrees d'audit sans donnees
+personnelles sont conservees. Ne jamais utiliser de donnees RH reelles
+pour ce test, surtout avant les mesures RGPD et sauvegardes prevues.
