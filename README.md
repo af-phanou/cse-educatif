@@ -27,3 +27,9 @@ C'est une **maquette**, non une application de production. Aucun paiement, email
 ## Identité graphique
 
 Bleu `#1278CC`, bleu marine `#0F2660`, blanc, conformément aux orientations validées pour la maquette CSE.
+
+## Validation des commandes — V13
+
+Dans **Administration → Commandes** : sélection des commandes via cases à cocher, validation groupée après confirmation, et interrupteur « Validation automatique des commandes payées ». Les commandes non payées et déjà validées ne sont pas éligibles à la validation groupée. Les commandes avec plus d'une facture échue non réglée restent bloquées, et les billets doivent être disponibles pour leur attribution.
+
+**Attention** : l'automatisation est une **simulation JavaScript locale**. Elle fonctionne uniquement pendant l'utilisation de la maquette, y compris lors de l'ouverture de la page Commandes ou d'une modification de paiement locale ; elle **ne fonctionne pas en arrière-plan pendant les congés**. Pour le site définitif, ce mode nécessitera un service côté serveur et une confirmation fiable du paiement (webhook / rapprochement), avec traçabilité, envois réels et contrôle des stocks.
