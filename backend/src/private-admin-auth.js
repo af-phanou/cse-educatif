@@ -27,9 +27,21 @@ function isAllowedMutationOrigin(origin) {
     "http://localhost:18088", "http://127.0.0.1:18088"].includes(origin);
 }
 
+function isAllowedReviewHost(host) {
+  return ["localhost:8089", "127.0.0.1:8089",
+    "localhost:18089", "127.0.0.1:18089"].includes(host);
+}
+
+function isAllowedReviewOrigin(origin) {
+  return ["http://localhost:8089", "http://127.0.0.1:8089",
+    "http://localhost:18089", "http://127.0.0.1:18089"].includes(origin);
+}
+
 module.exports = {
   isValidPanelToken,
   isAllowedLocalHost,
   isAllowedMutationOrigin,
-  requestPath
+  requestPath,
+  isAllowedReviewHost,
+  isAllowedReviewOrigin
 };
