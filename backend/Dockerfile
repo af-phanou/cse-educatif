@@ -9,6 +9,7 @@ RUN npm install --omit=dev --ignore-scripts --no-audit --no-fund \
 COPY src/ ./src/
 COPY test/ ./test/
 COPY migrations/ ./migrations/
+COPY public/ ./public/
 USER node
 EXPOSE 3000
 
