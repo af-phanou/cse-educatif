@@ -812,3 +812,66 @@ Ne pas importer de véritables données RH tant que les mesures
 de conformité au RGPD, les sauvegardes testées et les procédures
 d'information et d'accès aux données du VPS au Canada ne sont
 pas achevées.
+
+
+## Étape 42 — Modèles de messages email avant activation de la messagerie
+
+Des gabarits HTML et texte brut sont préparés dans
+`src/email-templates.js`, **sans envoi SMTP, sans connexion à un
+compte email et sans ouverture publique du parcours**.
+
+Modèles disponibles :
+
+- Demande de confirmation de l'adresse email (lien à usage unique, 30 minutes).
+- Accusé de réception d'une demande (sans promesse d'activation).
+- Notification à l'équipe administrative qu'un dossier nécessite une revue
+  (aucun nom, prénom ni adresse email du salarié dans ce message).
+- Décision favorable de revue (sans compte déjà actif).
+- Décision défavorable de revue.
+
+Le lien de confirmation est préparé sous la forme
+`https://cse-educatif-rxtg.fr/verification-email#jeton=...`.
+Le jeton est placé dans le **fragment** pour éviter de le transmettre
+au serveur lors de la première requête de navigation. Une future
+page devra le récupérer, l'effacer immédiatement de l'adresse du
+navigateur et le transmettre par POST sécurisé, sans analytique,
+sans log de jeton et sans service tiers.
+
+**La page /verification-email et l'endpoint HTTP de vérification ne
+sont pas encore déployés. Ne pas envoyer ces modèles aux salariés
+avant leur mise en service, le paramétrage SMTP et les tests de bout
+en bout.** Aucune donnée réelle ne doit être utilisée.
+
+### Vérification hors ligne sur le VPS
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api node src/check-email-templates.js
+```
+
+Tests automatisés attendus : **127 réussis, aucun échec**.
+Dernière commande : `status:ok`, `templatesPrepared:5`,
+`smtpConfigured:false`, `verificationWebPagePublished:false`,
+`emailsSent:false`. Ces vérifications ne modifient pas PostgreSQL.
+
+### Avant la configuration SMTP OVHcloud
+
+Vérifier dans l'espace client OVHcloud si une **boîte de messagerie
+effective** existe pour le domaine (MX Plan, Email Pro ou autre).
+La seule possession du nom de domaine et du VPS ne garantit pas
+l'existence d'une boîte email. Le serveur SMTP, les ports TLS,
+l'authentification, les plafonds d'envoi et SPF/DKIM/DMARC dépendent
+du produit de messagerie réellement utilisé.
+
+Ne jamais placer des mots de passe email ou des jetons dans GitHub,
+les captures d'écran ou la conversation. Les identifiants SMTP
+devront rester dans des secrets privés du VPS. Ne pas modifier les
+enregistrements MX du domaine tant que l'offre et les besoins de
+réception ne sont pas clarifiés.
+
+La mise en route du SMTP devra être suivie d'un essai avec une
+adresse de test autorisée, du contrôle de la délivrabilité et d'un
+mécanisme anti-abus et de limitation des envois.
