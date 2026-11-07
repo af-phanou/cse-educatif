@@ -194,7 +194,11 @@ function downloadReport(){
  const csvRows=[["ligne","nom","prenom","numero_etablissement","action","details"],
   ...report.actions.map(a=>[a.line,a.last,a.first,a.number,a.action,a.message||""]),
   ...report.willDeactivate.map(e=>["",e.last,e.first,core.establishment(e),"desactivation","Absent du CSV mensuel"])];
- const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ const q=v=>{
+  const txt=String(v??"");
+  const safe=/^[=+\-@\t\r]/.test(txt)?"'"+txt:txt;
+  return '"'+safe.replace(/"/g,'""')+'"';
+ };
  const text="\uFEFF"+csvRows.map(row=>row.map(q).join(";")).join("\r\n");
  const href=URL.createObjectURL(new Blob([text],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=href;
