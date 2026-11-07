@@ -23,13 +23,14 @@ CREATE INDEX registration_email_challenges_expiration
 GRANT CONNECT ON DATABASE cse_educatif TO cse_email_verifier;
 GRANT USAGE ON SCHEMA cse TO cse_email_verifier;
 
--- Le serveur d'inscription pourra plus tard creer un jeton lors d'une
--- inscription reellement recevable, mais ne peut ni le relire ni le valider.
+-- Seul le service de verification pourra generer, stocker sous forme
+-- de hash SHA-256, et consommer un jeton. L'API d'inscription n'a
+-- aucun acces a cette table.
 GRANT INSERT (request_id, token_hash, expires_at)
-  ON cse.registration_email_challenges TO cse_app;
+  ON cse.registration_email_challenges TO cse_email_verifier;
 
--- Le service de verification ne peut consommer qu'un jeton et marquer
--- l'adresse comme verifiee, sans modifier email, statut ou profil.
+-- Le service ne peut modifier que le jeton consomme et la date de
+-- verification ; ni l'email, ni le statut, ni le profil.
 GRANT SELECT (id, request_id, token_hash, expires_at, consumed_at)
   ON cse.registration_email_challenges TO cse_email_verifier;
 GRANT UPDATE (consumed_at)
