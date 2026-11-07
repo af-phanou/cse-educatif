@@ -71,3 +71,15 @@ Chaque choix dispose d'un aperçu et d'une option **Activer les petites animatio
 Après choix, cliquer sur **Appliquer au site public**. Le paramètre est enregistré sous `cse_fusion_v20_seasonal_theme` dans le stockage local du navigateur et récupéré par le site public via les deux fichiers `seasonal-themes-v20.js` et `seasonal-public-v20.js`. Le panneau admin se trouve dans `seasonal-admin-v20.js`. Le style est dans `seasonal-themes-v20.css`.
 
 **Limites :** ce réglage concerne la maquette locale et n'est pas encore synchronisé entre les différents ordinateurs, ni automatiquement activé selon le calendrier. Le bleu et blanc du logo restent inchangés.
+
+## Éditions festives fortes — V23
+
+Les thèmes Noël et Halloween disposent désormais d'une véritable identité graphique temporaire sur **le site public** :
+
+- **Noël** : rouge profond et vert sapin, bordures dorées, grande bannière festive, sapin, cadeaux, boules et étoiles SVG, neige et petites animations.
+- **Halloween** : orange lumineux, fond violet-noir, bandeau saisonnier, illustrations SVG de citrouille, fantôme et chauves-souris, particules animées.
+- Les couleurs s'appliquent au header, à la navigation, à l'accueil, aux boutons, aux cartes produits et au catalogue ; prix et parcours de commande restent inchangés.
+- Les éléments décoratifs ne bloquent pas les interactions. Les animations sont supprimées pour `prefers-reduced-motion: reduce` et peuvent être désactivées dans **Administration → Thèmes du site**.
+- Les autres thèmes saisonniers restent tels qu'ils existaient en V20.
+
+Fichiers : `seasonal-festive-v23.css` et `seasonal-festive-v23.js`. Le choix du thème reste stocké sous `cse_fusion_v20_seasonal_theme` et se fait dans **Administration → Pages du site / Thèmes du site**. Les tests de syntaxe ont été effectués, pas encore la recette visuelle complète dans un navigateur.
