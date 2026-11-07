@@ -330,7 +330,7 @@ cmsBlockTypes.push(["featured","★","Produits mis en avant"]);
 const originalCmsGetBlocks=cmsGetBlocks;
 cmsGetBlocks=function(){let k=pages[cmsIndex]?.name;let a=originalCmsGetBlocks();if(k==="Accueil"&&!a.some(b=>b.type==="featured"))a.push({type:"featured",title:"Nos offres à la une",limit:8,id:Date.now()});return a};
 const originalCmsEditorFields=cmsEditorFields;
-cmsEditorFields=function(b){if(b&&b.type==="featured")return '<h3>Produits à la une</h3><div class="field"><label>Titre</label><input value="'+esc(b.title||"")+'" oninput="cmsSetBlockField(\'title\',this.value)"></div><div class="field"><label>Nombre de produits (maximum 8)</label><select onchange="cmsSetBlockField(\'limit\',Number(this.value))">'+[2,4,6,8].map(n=>'<option '+(Number(b.limit)===n?'selected':'')+'>'+n+'</option>').join("")+'</select></div><p class="small muted">Les produits étoilés dans le catalogue s'affichent en deux colonnes.</p>';return originalCmsEditorFields(b)};
+cmsEditorFields=function(b){if(b&&b.type==="featured")return '<h3>Produits à la une</h3><div class="field"><label>Titre</label><input value="'+esc(b.title||"")+'" oninput="cmsSetBlockField(\'title\',this.value)"></div><div class="field"><label>Nombre de produits (maximum 8)</label><select onchange="cmsSetBlockField(\'limit\',Number(this.value))">'+[2,4,6,8].map(n=>'<option '+(Number(b.limit)===n?'selected':'')+'>'+n+'</option>').join("")+'</select></div><p class="small muted">Les produits étoilés dans le catalogue sont affichés en deux colonnes.</p>';return originalCmsEditorFields(b)};
 const originalCmsSave=cmsSaveBuilder;
 cmsSaveBuilder=function(){originalCmsSave();sharePages();toast("Page enregistrée et publiée dans le navigateur")};
 const origAddPage=cmsAddPage;
