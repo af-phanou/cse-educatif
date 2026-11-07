@@ -940,3 +940,70 @@ gestion des secrets applicatifs, limitation des envois et des abus,
 raccordement fiable de la vérification email au flux d'inscription,
 gestion des rebonds et des reprises, sauvegardes et conformité RGPD,
 notamment pour l'hébergement des données au Canada.
+
+
+## Etape 51 — Connecteur SMTP Node.js (mode essai uniquement)
+
+Le test SMTP historique Python a confirme que le serveur
+`smtp.mail.ovh.net:465` accepte des messages depuis le VPS vers la
+boite `contact@cse-educatif-rxtg.fr`.
+
+L'application Node.js dispose maintenant d'un transport Nodemailer
+(version `10.3.1`, testee avec Node 26) :
+
+- `src/email-smtp.js` : port 465, TLS obligatoire (minimum TLS 1.2),
+  certificat verifie, pas de logs SMTP et destinataire impose a
+  `contact@cse-educatif-rxtg.fr` pour le test ;
+- `src/send-email-selftest.js` : envoie **un unique message technique**
+  vers la boite CSE elle-meme, sans inscription, utilisateur ou CSV ;
+- `test/email-smtp.test.js` : controles sans aucune connexion SMTP ;
+- service Compose `mailer_test` : **profil Docker manuel**
+  `manual-mail-test`, aucune connexion base, aucun port expose,
+  reseau sortant bridge dedie, aucun redemarrage automatique.
+
+Le role SQL `cse_email_verifier` reste distinct et n'est pas
+attribue a ce service. **La file `cse.email_outbox` n'est pas consommee,
+aucun email ne part automatiquement aux salaries.**
+
+### Installer et tester sur le VPS
+
+Dans Ubuntu :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+# Le secret SMTP du test Python precedent existe deja.
+stat -c '%U %a %n' secrets/smtp_password
+
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+```
+
+Nombre attendu après ajout des 7 nouveaux tests : **134 réussis**
+(sur la base des 127 tests existants).
+
+Après ces vérifications, lancer **une seule fois** le test SMTP :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml --profile manual-mail-test run --rm --no-deps mailer_test
+```
+
+Le message doit afficher `accepted_by_smtp`, avec
+`automatedSending:false` et `emailsToEmployees:0`. Vérifier
+ensuite dans le webmail OVHcloud la réception du message intitulé
+`CSE Educatif - test du moteur SMTP de l'application`.
+
+L'acceptation par le serveur ne garantit pas à elle seule la
+délivrabilité externe. Pour celle-ci, contrôler les en-têtes
+SPF / DKIM / DMARC d'un message de test destiné à une boîte externe
+autorisée. Le DKIM est déclaré actif chez OVHcloud, et DMARC est
+publié en DNS avec `v=DMARC1; p=none`.
+
+**Ne jamais copier `secrets/smtp_password` dans GitHub ou dans ce chat.**
+Ce test manuel ne publie aucun port ni endpoint ; il ne remplace pas
+les contrôles de sécurité indispensables au service d'envoi automatisé.
