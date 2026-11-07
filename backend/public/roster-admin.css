@@ -1,0 +1,42 @@
+:root{color-scheme:light;--bg:#f4f7fb;--blue:#1278cc;--navy:#0f2660;--line:#d9e5f1;--muted:#526781}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#1a2c46;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;line-height:1.5}
+.shell{max-width:1050px;margin:auto;padding:0 20px}
+header{background:white;border-bottom:1px solid var(--line);padding:15px 0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.topbar strong{color:var(--navy);font-size:21px}
+.topbar span{color:var(--muted);font-size:13px}
+main{padding-top:22px!important;padding-bottom:54px!important}
+h1{font-size:clamp(24px,3vw,32px);color:var(--navy)}
+h2{font-size:21px;color:var(--navy);margin:4px 0 10px}
+h3{font-size:17px;color:var(--navy)}
+.notice,.warning{background:#e7f3ff;border-left:4px solid var(--blue);padding:13px 16px;border-radius:5px}
+.warning{background:#fff7e7;border-color:#bf8124}
+.panel{margin:20px 0;border:1px solid var(--line);border-radius:12px;padding:20px;background:white}
+.inline,.actions,.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.toolbar{justify-content:space-between;margin-top:20px}
+.toolbar .muted{margin:0}
+label{display:block;margin:9px 0;font-weight:650}
+input{font:inherit;width:100%;padding:11px;border:1px solid #a9b9cc;border-radius:8px}
+input[type=file]{background:#f8fbff}
+.inline input{flex:1;min-width:210px}
+button{font:inherit;border:0;background:var(--navy);color:white;border-radius:8px;padding:11px 16px;font-weight:650;cursor:pointer}
+button.secondary{background:#e6edf5;color:var(--navy)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.actions{margin-top:14px}
+.result{margin-top:18px;padding:16px;background:#f7fbff;border:1px solid #cfe0f0;border-radius:8px}
+.result strong{color:var(--navy)}
+.muted{font-size:14px;color:var(--muted)}
+code{background:#edf3f9;border-radius:3px;padding:2px 5px}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:660px}
+th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--navy);font-size:13px}
+td{font-size:14px}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650;background:#e9eef5;color:#34425c}
+.pill.active{background:#ddf5e8;color:#12673f}
+.pill.staged{background:#fff1d5;color:#93530b}
+#message{font-weight:650;min-height:2em}
+#message.error{color:#a62424}
+#message.ok{color:#136b40}
+[hidden]{display:none!important}
