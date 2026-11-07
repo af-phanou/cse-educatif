@@ -166,7 +166,8 @@ async function release(orderId){
   req.onsuccess=()=>{
    const rows=(req.result||[]).filter(t=>t.orderId===orderId&&t.status==="Réservé");
    for(const t of rows)table.put({...t,status:"Libre",folder:"Libres",orderId:null,reservedAt:null,
-     ownerName:null,ownerEmail:null,ownerId:null,variantId:null});
+     ownerName:null,ownerEmail:null,ownerId:null,
+     variantId:t.sourceVariantId??t.originalVariantId??null,sourceVariantId:null});
    ok({released:rows.length});
   };
  });
