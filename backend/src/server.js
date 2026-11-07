@@ -5,14 +5,14 @@ const fs = require("node:fs");
 const { Pool } = require("pg");
 
 const port = Number(process.env.PORT || 3000);
-const secretFile = process.env.DB_PASSWORD_FILE || "/run/secrets/postgres_password";
+const secretFile = process.env.DB_PASSWORD_FILE || "/run/secrets/app_db_password";
 const password = fs.readFileSync(secretFile, "utf8").trim();
 
 const pool = new Pool({
   host: process.env.DB_HOST || "db",
   port: Number(process.env.DB_PORT || 5432),
   database: process.env.DB_NAME || "cse_educatif",
-  user: process.env.DB_USER || "cse_dbadmin",
+  user: process.env.DB_USER || "cse_app",
   password,
   max: 4,
   connectionTimeoutMillis: 4000,
