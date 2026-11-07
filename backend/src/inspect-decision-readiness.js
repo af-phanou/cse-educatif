@@ -44,7 +44,7 @@ async function inspectDecisionReadiness(db, requestIds = null) {
   if (requestIds !== null && (
     !Array.isArray(requestIds) || requestIds.length > 20 ||
     requestIds.some(id => typeof id !== "string" ||
-      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
   )) throw new Error("Selection de demandes incorrecte.");
   const result = await db.query(READINESS_SQL, [requestIds]);
   return {
