@@ -19,6 +19,7 @@ async function main() {
   const appPassword = readSecret(process.env.APP_DB_PASSWORD_FILE || "/run/secrets/app_db_password");
   const managerPassword = readSecret(process.env.ESTABLISHMENTS_DB_PASSWORD_FILE || "/run/secrets/establishments_db_password");
   const reviewerPassword = readSecret(process.env.REVIEWER_DB_PASSWORD_FILE || "/run/secrets/registration_reviewer_db_password");
+  const rosterPassword = readSecret(process.env.ROSTER_DB_PASSWORD_FILE || "/run/secrets/roster_db_password");
 
   const pool = new Pool({
     host: process.env.DB_HOST || "db",
@@ -94,6 +95,25 @@ async function main() {
       "END",
       "$role$;"
     ].join("\n"));
+    // Compte d'import CSV distinct, sans acces aux comptes ni aux emails.
+    await client.query("SELECT set_config('cse.roster_role_password', $1, true)", [rosterPassword]);
+    await client.query([
+      "DO $role$",
+      "BEGIN",
+      "  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cse_roster_manager') THEN",
+      "    EXECUTE format(",
+      "      'CREATE ROLE cse_roster_manager LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.roster_role_password')",
+      "    );",
+      "  ELSE",
+      "    EXECUTE format(",
+      "      'ALTER ROLE cse_roster_manager WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.roster_role_password')",
+      "    );",
+      "  END IF;",
+      "END",
+      "$role$;"
+    ].join("\n"));
     await client.query("GRANT CONNECT ON DATABASE cse_educatif TO cse_app");
     await client.query("CREATE SCHEMA IF NOT EXISTS cse");
     await client.query("REVOKE ALL ON SCHEMA cse FROM PUBLIC");
@@ -132,6 +152,7 @@ async function main() {
     console.log("Role cse_app configure avec privileges limites.");
     console.log("Role cse_site_manager configure avec privileges limites.");
     console.log("Role cse_registration_reviewer configure avec privileges limites.");
+    console.log("Role cse_roster_manager configure avec privileges limites.");
     console.log("Migrations appliquees :", applied.length ? applied.join(", ") : "aucune nouvelle");
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* best effort */ }
