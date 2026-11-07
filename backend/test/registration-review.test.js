@@ -2,7 +2,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
-  listPendingRequests, decideRequest, QUEUE_SQL
+  listPendingRequests, decideRequest, decideRequestInTransaction, QUEUE_SQL, DECISION_NOTICE_SQL
 } = require("../src/registration-review");
 
 const uuid = "11111111-2222-4333-8444-555555555555";
@@ -69,14 +69,15 @@ test("approuve un dossier pending en transaction sans activer le compte", async 
   const pool = fakePool();
   const result = await decideRequest(pool, uuid, "approved");
   assert.deepEqual(result, {
-    status:"recorded",decision:"approved",accountActivated:false,emailSent:false
+    status:"recorded",decision:"approved",notificationPrepared:true,accountActivated:false,emailSent:false
   });
   assert.equal(pool.calls[0].sql,"BEGIN");
   assert.equal(pool.calls.at(-1).sql,"COMMIT");
   assert.equal(pool.client.released,true);
   assert.equal(pool.calls.filter(c => c.sql.startsWith("INSERT INTO cse.audit_events")).length,1);
   assert.equal(pool.calls.some(c => c.sql.includes("cse.accounts")),false);
-  assert.equal(pool.calls.some(c => c.sql.includes("cse.email_outbox")),false);
+  assert.equal(pool.calls.filter(c => c.sql === DECISION_NOTICE_SQL).length,1);
+  assert.deepEqual(pool.calls.find(c => c.sql === DECISION_NOTICE_SQL).values,[uuid,"registration_approved"]);
 });
 
 test("refuse un dossier avec la meme procedure", async () => {
@@ -112,4 +113,38 @@ test("echec de l'audit : rollback de la decision", async () => {
   await assert.rejects(() => decideRequest(pool,uuid,"approved"));
   assert.equal(pool.calls.at(-1).sql,"ROLLBACK");
   assert.equal(pool.client.released,true);
+});
+
+
+test("refus prépare uniquement une notification sans adresse et sans SMTP", async () => {
+  const pool=fakePool();
+  const result=await decideRequest(pool,uuid,"rejected");
+  assert.equal(result.notificationPrepared,true);
+  const notices=pool.calls.filter(c=>c.sql===DECISION_NOTICE_SQL);
+  assert.equal(notices.length,1);
+  assert.deepEqual(notices[0].values,[uuid,"registration_rejected"]);
+  assert.match(notices[0].sql,/recipient_email/);
+  assert.match(notices[0].sql,/NULL, 'employee'/);
+  assert.equal(pool.calls.some(c=>c.sql.includes("sendMail")),false);
+});
+
+test("dossier déjà traité : aucune notification supplémentaire", async () => {
+  const pool=fakePool({found:false});
+  await decideRequest(pool,uuid,"approved");
+  assert.equal(pool.calls.some(c=>c.sql===DECISION_NOTICE_SQL),false);
+});
+
+test("échec de la préparation de notification annule la décision",async () => {
+  const pool=fakePool({fail:"INSERT INTO cse.email_outbox"});
+  await assert.rejects(()=>decideRequest(pool,uuid,"approved"));
+  assert.equal(pool.calls.at(-1).sql,"ROLLBACK");
+  assert.equal(pool.calls.some(c=>c.sql.includes("INSERT INTO cse.audit_events")),false);
+});
+
+test("le noyau de décision ne déclenche jamais COMMIT ni ROLLBACK",async () => {
+  const pool=fakePool();
+  const result=await decideRequestInTransaction(pool.client,uuid,"approved");
+  assert.equal(result.status,"recorded");
+  assert.equal(result.notificationPrepared,true);
+  assert.equal(pool.calls.some(c=>["BEGIN","COMMIT","ROLLBACK"].includes(c.sql)),false);
 });
