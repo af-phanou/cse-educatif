@@ -221,5 +221,6 @@
   };
   window.addEventListener("storage", e => { if (e.key === CSECatalog.KEY && page === "catalog") render(); });
   window.addEventListener("cse:catalog-updated", () => { if (page === "catalog") render(); });
+  if (window.location?.hash?.toLowerCase() === "#boutique") page = "catalog";
   render();
 })();
