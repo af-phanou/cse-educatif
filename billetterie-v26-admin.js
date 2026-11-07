@@ -36,7 +36,7 @@ function body(){
  if(v26Supplier&&!available.some(s=>s.name===v26Supplier))v26Supplier=available[0]?.name||"";
  const chosen=all.find(x=>x.name===v26Supplier);
  const byOrders=orders.filter(o=>orderSupplier(o)===v26Supplier);
- return heading("Billetterie · Gestion des PDF","Importez les billets dans le fournisseur, attribuez-les à une commande payée, retrouvez-les dans « Vendu ».","<button class=\"btn primary\" onclick=\"cseTicketNewSupplier()\">＋ Fournisseur</button>")+
+ return heading("Billetterie · Gestion des PDF","Importez les billets dans le fournisseur, attribuez-les à une commande payée, retrouvez-les dans « Vendu ».","<div class=\"row\"><button class=\"btn primary\" onclick=\"cseTicketOpenImport()\">⇧ Importer des billets PDF</button><button class=\"btn\" onclick=\"cseTicketNewSupplier()\">＋ Fournisseur</button></div>")+
  '<div class="t26-summary" id="t26Summary"><div class="t26-metric"><small>PDF stockés</small><strong>…</strong></div><div class="t26-metric"><small>Billets libres</small><strong>…</strong></div><div class="t26-metric"><small>Billets vendus</small><strong>…</strong></div><div class="t26-metric"><small>Fournisseurs</small><strong>'+all.length+'</strong></div></div>'+
  '<div class="t26-layout"><section class="t26-sidebar"><h3>Catégories</h3><div class="t26-category-list">'+categories.map(c=>'<button class="'+(v26Cat===c?"selected":"")+'" onclick="cseTicketCategory('+jsArg(c)+')">'+escHtml(c)+'</button>').join("")+'</div>'+
  '<h3>Fournisseurs</h3><input type="search" class="t26-input" placeholder="Rechercher un fournisseur…" aria-label="Filtrer les fournisseurs" oninput="cseTicketFilterSuppliers(this.value)">'+
@@ -159,6 +159,12 @@ async function assign(){
 async function download(id){
  try{await store.downloadById(id)}catch(e){alert("Téléchargement impossible : "+e.message)}
 }
+function openImport(){
+ const input=document.getElementById("t26Input");
+ if(!input){toast("Sélectionnez un fournisseur dans la liste pour importer des billets.");return}
+ input.click();
+}
+window.cseTicketOpenImport=openImport;
 window.cseTicketCategory=selectCategory;
 window.cseTicketSelectSupplier=selectSupplier;
 window.cseTicketFolder=selectFolder;
