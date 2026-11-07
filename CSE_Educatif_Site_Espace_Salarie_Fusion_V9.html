@@ -57,7 +57,6 @@ return url?'<section class="section"><iframe title="Vidéo" src="'+esc(url)+'" l
 case "button":return b.url&&/^https:\/\//.test(b.url)?'<p><a class="btn" target="_blank" rel="noopener noreferrer" href="'+esc(b.url)+'">'+esc(b.label||"En savoir plus")+'</a></p>':'';
 default:return ""}
 }
-}
 const legacyHome=home,legacyAbout=about,legacyContact=contact;
 home=function(){let blocks=sharedPage("Accueil");if(!blocks||!blocks.length)return legacyHome()+'<section class="section"><h2>Offres mises en avant</h2>'+publicFeatured(8)+'</section>';return blocks.map(sharedBlockRender).join("")};
 about=function(){let blocks=sharedPage("Le CSE");return blocks?.length?blocks.map(sharedBlockRender).join(""):legacyAbout()};
