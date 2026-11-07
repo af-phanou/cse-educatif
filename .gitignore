@@ -1,0 +1,23 @@
+# Ne jamais versionner de secrets, configurations locales ou exports RH
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.csv
+*.xlsx
+*.xls
+
+# Node / Docker
+node_modules/
+npm-debug.log*
+*.log
+
+# Editeurs et OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
