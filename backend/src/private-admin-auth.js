@@ -11,12 +11,13 @@ function isValidPanelToken(value, expected) {
 }
 
 function isAllowedLocalHost(host) {
-  return host === "localhost:8088" || host === "127.0.0.1:8088";
+  return ["localhost:8088", "127.0.0.1:8088",
+    "localhost:18088", "127.0.0.1:18088"].includes(host);
 }
 
 function isAllowedMutationOrigin(origin) {
-  return origin === "http://localhost:8088" ||
-    origin === "http://127.0.0.1:8088";
+  return ["http://localhost:8088", "http://127.0.0.1:8088",
+    "http://localhost:18088", "http://127.0.0.1:18088"].includes(origin);
 }
 
 module.exports = {
