@@ -766,4 +766,14 @@ function exportPromoUsageCSV(){
  const a=document.createElement("a");a.href=url;a.download="cse_suivi_utilisation_codes.csv";
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+</script>
+<script>
+/* Les validations groupées utilisent une fonction antérieure à V16 :
+   synchroniser aussi leur statut dans le suivi nominatif. */
+const validateBatchOrdersBeforeUsageV16=validateBatchOrders;
+validateBatchOrders=function(ids,automated){
+ const result=validateBatchOrdersBeforeUsageV16(ids,automated);
+ ids.forEach(id=>markPromoUsageConfirmed(id));
+ return result;
+};
 </script></body></html>
