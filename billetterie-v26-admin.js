@@ -38,10 +38,10 @@ function body(){
  const byOrders=orders.filter(o=>orderSupplier(o)===v26Supplier);
  return heading("Billetterie · Gestion des PDF","Importez les billets dans le fournisseur, attribuez-les à une commande payée, retrouvez-les dans « Vendu ».","<button class=\"btn primary\" onclick=\"cseTicketNewSupplier()\">＋ Fournisseur</button>")+
  '<div class="t26-summary" id="t26Summary"><div class="t26-metric"><small>PDF stockés</small><strong>…</strong></div><div class="t26-metric"><small>Billets libres</small><strong>…</strong></div><div class="t26-metric"><small>Billets vendus</small><strong>…</strong></div><div class="t26-metric"><small>Fournisseurs</small><strong>'+all.length+'</strong></div></div>'+
- '<div class="t26-layout"><aside class="t26-sidebar"><h3>Catégories</h3><div class="t26-category-list">'+categories.map(c=>'<button class="'+(v26Cat===c?"selected":"")+'" onclick="cseTicketCategory('+jsArg(c)+')">'+escHtml(c)+'</button>').join("")+'</div>'+
+ '<div class="t26-layout"><section class="t26-sidebar"><h3>Catégories</h3><div class="t26-category-list">'+categories.map(c=>'<button class="'+(v26Cat===c?"selected":"")+'" onclick="cseTicketCategory('+jsArg(c)+')">'+escHtml(c)+'</button>').join("")+'</div>'+
  '<h3>Fournisseurs</h3><input type="search" class="t26-input" placeholder="Rechercher un fournisseur…" aria-label="Filtrer les fournisseurs" oninput="cseTicketFilterSuppliers(this.value)">'+
- '<div id="t26Suppliers">'+available.map(s=>cardForSupplier(s,lastTickets)).join("")||'<p>Aucun fournisseur</p>'+'</div></aside>'+
- '<main class="t26-main">'+(chosen?
+ '<div id="t26Suppliers">'+available.map(s=>cardForSupplier(s,lastTickets)).join("")||'<p>Aucun fournisseur</p>'+'</div></section>'+
+ '<section class="t26-main">'+(chosen?
  '<div class="t26-main-head"><div><div class="t26-overline">'+escHtml(chosen.category)+'</div><h2>'+escHtml(chosen.name)+'</h2><p>Les PDF importés sont conservés en « Libres » jusqu’à leur attribution.</p></div><span class="t26-badge">Mode démonstration</span></div>'+
  '<div class="t26-droparea" id="t26Drop" ondragover="event.preventDefault();this.classList.add(\'hover\')" ondragleave="this.classList.remove(\'hover\')" ondrop="cseTicketDrop(event)">'+
  '<div class="t26-upload-icon">⇧</div><strong>Déposer les PDF de '+escHtml(chosen.name)+' ici</strong>'+
@@ -60,7 +60,7 @@ function body(){
  '<div class="tablewrap"><table class="t26-table"><thead><tr><th>PDF</th><th>Commande / salarié</th><th>Date</th><th>État</th><th>Action</th></tr></thead><tbody id="t26Table"><tr><td colspan="5">Chargement...</td></tr></tbody></table></div>'+
  '<p class="t26-footnote">Un billet vendu garde le même PDF ; son nom de téléchargement est modifié et son état passe dans le dossier « Vendu ». Aucune pièce jointe ni email réel n’est envoyé par la maquette.</p>'
  :'<section class="panel"><h3>Sélectionnez un fournisseur</h3><p>Choisissez une catégorie ou créez un fournisseur pour importer des billets.</p></section>')+
- '</main></div>';
+ '</section></div>';
 }
 function view(){
  const html=body();
