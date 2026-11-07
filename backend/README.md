@@ -735,3 +735,80 @@ de production exige encore vérification du propriétaire de l'email,
 comptes sécurisés, authentification administrateur individuelle/MFA,
 envoi SMTP, sauvegardes restaurables et conformité RGPD pour les données
 hébergées au Canada.
+
+
+## Étape 41 — Vérification de l'adresse email (préparation privée)
+
+Cette étape prépare les jetons de confirmation sans encore ouvrir le parcours
+d'inscription et sans expédier d'emails.
+
+**Fonctionnement prévu** : après une demande d'inscription, un service
+d'envoi SMTP autorisé générera un lien temporaire et l'enverra à
+l'adresse saisie par le salarié. Le jeton devra être présenté une seule
+fois pour prouver que l'adresse est accessible par le demandeur.
+
+### Protections ajoutées
+
+- Migration `008_email_verification.sql` : nouvelle table
+  `cse.registration_email_challenges`.
+- Jeton aléatoire cryptographiquement sûr : **32 octets / 256 bits**,
+  transmis comme 64 caractères hexadécimaux.
+- Stockage SQL : **empreinte SHA-256 seulement**, aucun jeton brut.
+- Expiration **30 minutes** après l'émission.
+- Un jeton ne peut être validé qu'une fois ; une seconde utilisation
+  ou un jeton expiré est refusé.
+- Une demande rejetée, annulée ou expirée ne peut pas être vérifiée.
+- Le service est autorisé à modifier uniquement
+  `email_verified_at` et `consumed_at`, pas l'email, le statut
+  administratif, les listes RH ni les comptes salariés.
+- Journal d'audit limité, sans jeton et sans adresse email.
+- Aucun mot de passe, compte actif ou email envoyé dans cette étape.
+
+Le rôle SQL `cse_email_verifier` dispose d'un **secret dédié**
+conservé sur le VPS. Le test de validation utilise les droits de
+ce rôle, avec `SET LOCAL ROLE` à l'intérieur d'une transaction
+PostgreSQL. Le test utilise des coordonnées fictives
+`@example.invalid`, exécute un `ROLLBACK` et contrôle que les
+données de démonstration n'ont pas été conservées.
+
+**Le moteur ne publie aucune nouvelle route HTTP et ne contient
+aucune fonction SMTP.** L'envoi de mails et la confirmation par clic
+seront raccordés après avoir sécurisé la délivrabilité et
+l'authentification, avec un dispositif anti-abus et une
+gestion sécurisée du renouvellement des liens.
+
+### Installation sur Ubuntu VPS
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+if [ ! -f secrets/email_verifier_db_password ]; then
+  (umask 077; openssl rand -hex 32 > secrets/email_verifier_db_password)
+fi
+chmod 600 secrets/email_verifier_db_password
+
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/check-email-verification-e2e.js
+```
+
+Le test Node doit montrer **115 tests réussis, zéro échec**.
+La migration doit afficher `008_email_verification.sql`.
+Le test d'intégration doit afficher `"status":"ok"`, ainsi que
+`"firstUse":"verified"`, `"replay":"invalid_or_expired"`,
+`"expiredToken":"invalid_or_expired"`,
+`"originalTokenStored":false`, `"rolledBack":true`,
+`"accountsCreated":false` et `"emailsSent":false`.
+
+Ne pas ajouter le rôle email à l'API ou à Caddy pour le moment.
+Ne pas importer de véritables données RH tant que les mesures
+de conformité au RGPD, les sauvegardes testées et les procédures
+d'information et d'accès aux données du VPS au Canada ne sont
+pas achevées.
