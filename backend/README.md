@@ -371,3 +371,98 @@ toutes a `true`. Aucune donnee RH n'est chargee par cette operation.
 
 **N'importer aucun CSV RH reel et ne saisir aucune coordonnee personnelle
 de salarie pendant cette phase.**
+
+
+## Etape 28 — Panneau prive de validation des inscriptions
+
+La migration `006_registration_review.sql` cree un role SQL dedie :
+`cse_registration_reviewer`. Il ne peut consulter que les
+colonnes necessaires des demandes d'inscription, puis **approuver**
+ou **refuser** une demande en attente. Il n'a pas acces aux listes RH,
+aux comptes salaries, aux adresses postales ou aux numeros de telephone.
+
+**Important** : approuver une demande n'active aucun compte et
+n'envoie aucun email. La verification de l'adresse email, les comptes
+utilisateurs et les expeditions SMTP restent a implementer.
+
+Le service `inscriptions_admin` est accessible **UNIQUEMENT** sur le
+loopback du VPS `127.0.0.1:8089`, par tunnel SSH depuis le PC.
+Il partage le reseau interne PostgreSQL et le bridge dedie
+`cse_panel_bridge` (necessaire a la publication sur Docker 29).
+Aucun port public n'est ouvert. **Ne jamais ajouter cette route a Caddy,
+ni publier 8089 sur 0.0.0.0, ni ouvrir le port dans UFW.**
+
+### Mise a jour sur Ubuntu VPS
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+if [ ! -f secrets/registration_reviewer_db_password ]; then
+  (umask 077; openssl rand -hex 32 > secrets/registration_reviewer_db_password)
+fi
+if [ ! -f secrets/registration_review_panel_token ]; then
+  (umask 077; openssl rand -hex 32 > secrets/registration_review_panel_token)
+fi
+chmod 600 secrets/registration_reviewer_db_password secrets/registration_review_panel_token
+
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build inscriptions_admin
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml ps
+```
+
+Resultat attendu des tests : **64 reussites et 0 echec**.
+La migration doit appliquer `006_registration_review.sql`.
+Le service `inscriptions_admin` doit etre `healthy` et publier
+uniquement `127.0.0.1:8089->3101/tcp`.
+
+Verifications dans Ubuntu :
+
+```bash
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8089/; echo
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml exec -T inscriptions_admin node src/check-review-setup.js
+```
+
+Le controle HTTP doit repondre `200`. Le test des droits doit
+repondre `"status":"ok"` avec les huit controles vrais.
+
+### Tunnel depuis PowerShell Windows
+
+Si le tunnel des etablissements est deja actif, l'arreter avec Ctrl+C
+puis ouvrir un tunnel SSH combinant les deux ports :
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\id_ed25519_cse" -o ExitOnForwardFailure=yes -N -L 127.0.0.1:18088:127.0.0.1:8088 -L 127.0.0.1:18089:127.0.0.1:8089 ubuntu@167.114.71.54
+```
+
+Ouvrir **manuellement** dans le navigateur du PC :
+`http://127.0.0.1:18089/`
+
+Recuperer dans Ubuntu le jeton **uniquement sur un terminal prive** :
+
+```bash
+cat /srv/cse-educatif/secrets/registration_review_panel_token
+```
+
+Ne jamais transmettre ce jeton dans un chat, une capture, GitHub,
+un email ou un document non chiffre.
+
+La file d'attente sera normalement **vide** pour le moment : les
+inscriptions publiques sont toujours fermees et aucun CSV RH reel
+ne doit etre importe. Le panneau permet de tester l'affichage sans
+creer de comptes ou envoyer d'emails. Les decisions sont journalisees,
+mais non attribuees a un compte individuel : l'authentification par
+identite et la double authentification restent a developper.
+
+### Avant toute production
+
+Mettre en place un superadministrateur authentifie (MFA), une gestion
+des permissions et de l'audit individualisee, la verification de l'email,
+la creation des comptes avec Argon2id, un import CSV RH mensuel securise,
+un service SMTP, la suppression des dossiers expires, des sauvegardes
+testees et la conformite RGPD pour les donnees hebergees au Canada.
