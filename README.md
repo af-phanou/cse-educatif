@@ -141,3 +141,37 @@ Préparation : dans Administration > Billetterie, relier chaque produit à son f
 Emails : cinq modèles de messages sélectionnables ; bouton d'export d'un brouillon .eml contenant les PDF délivrés. L'administrateur doit ouvrir ce fichier dans sa messagerie et l'envoyer manuellement. Le mode automatique marque uniquement un envoi SIMULÉ. Aucun email réel n'est envoyé sur GitHub Pages.
 
 Fichiers ajoutés : billetterie-v28-commandes.js, billetterie-v28-site.js, billetterie-v28-admin.js et billetterie-v28.css. Stockage PDF IndexedDB local et commandes dans localStorage. Un serveur OVH sera nécessaire pour sécuriser les paiements, authentifier les utilisateurs, stocker les PDF sur le serveur, envoyer les emails réels et gérer une expiration des réservations impayées. Le code PIN de démonstration n'est pas une protection de production.
+
+## V29 — Import mensuel des salariés par CSV RH
+
+Dans **Administration → Salariés**, un nouveau panneau « Importer les salariés depuis un CSV » permet de sélectionner un fichier mensuel, puis de consulter un aperçu du rapprochement avant sa validation. Un raccourci **« ⇧ Import CSV salariés »** a été ajouté au menu administrateur.
+
+### Format attendu
+
+Colonnes obligatoires : **nom, prénom, numéro d'établissement**. En-têtes recommandés :
+
+    nom;prenom;numero_etablissement
+    Martin;Sophie;101
+    Bernard;Karim;102
+    Leroy;Claire;105
+
+Le module accepte un séparateur point-virgule, virgule ou tabulation, les fichiers UTF-8 et Windows-1252, des en-têtes de colonnes dans n'importe quel ordre et, à défaut d'en-tête, trois colonnes dans l'ordre indiqué. Les numéros d'établissement sont conservés comme texte pour préserver les zéros initiaux. Maximum 20 000 lignes et fichier de 6 Mo maximum. Un bouton permet de télécharger un exemple fictif.
+
+### Rapprochement mensuel et précautions
+
+- Les salariés sont comparés par **nom normalisé + prénom normalisé + numéro d'établissement**. Accents, casse, espaces multiples et traits d'union sont pris en compte.
+- Les nouveaux salariés sont ajoutés à l'annuaire et sont actifs ; un établissement nouveau est créé dans la liste.
+- Les personnes déjà présentes sont actualisées et marquées « vues dans l'import du mois ». Les personnes inactives retrouvées sont réactivées.
+- Les changements d'établissement ou homonymies sont **soumis à une décision administrative explicite** (rattacher à une fiche ou créer une identité distincte) : aucun rapprochement approximatif automatique.
+- Les doublons, les lignes invalides et les rapprochements non résolus bloquent la validation ; un rapport de contrôle CSV peut être téléchargé.
+- Les départs possibles (salariés précédemment importés, mais absents du nouveau CSV) sont signalés. **Ils ne sont désactivés que si l'administrateur coche explicitement « Désactiver les absents »** et confirme le résultat. Les fiches non encore suivies par le CSV ne sont pas désactivées automatiquement au premier import.
+- Ni les factures, ni les commandes, ni les billets, ni les coordonnées existantes ne sont effacés lors de la désactivation.
+- Historique des imports : mois RH, fichier, créations, réactivations, transferts et désactivations. Réimporter un même fichier ne recrée pas les salariés existants.
+
+### Confidentialité — avant la mise en production
+
+La maquette actuelle est publiée sur GitHub Pages et stocke les salariés RH **uniquement dans le localStorage du navigateur**. Il n'existe encore ni connexion admin sécurisée ni stockage partagé serveur. **N'importez pas de données RH réelles dans cette maquette publique ; testez uniquement avec des noms fictifs.** Sur OVH, le véritable module exigera authentification forte, restriction aux superadministrateurs, chiffrement/contrôle d'accès, journalisation, sauvegardes et conformité RGPD.
+
+Les données RH partagées par le vrai serveur serviront ensuite de référence à la création et validation des comptes salariés. Ce contrôle d'identité n'est pas encore une authentification effective dans la maquette.
+
+Fichiers : `salaries-csv-v29-core.js`, `salaries-csv-v29-admin.js`, `salaries-csv-v29.css`.
