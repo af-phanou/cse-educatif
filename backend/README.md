@@ -1096,3 +1096,69 @@ individuel et MFA, vérification email complète, données RH importées
 dans des conditions RGPD adaptées à l'hébergement canadien,
 limitation anti-abus, sauvegardes restaurables, délivrabilité, reprise
 des notifications, politique de rétention et effacement.
+
+
+## Étape 54 — Contrôle des préconditions de notification (sans aucun envoi)
+
+À l'issue de l'étape 53, le panneau \`inscriptions_admin\` est
+\`healthy\` et \`preview-notifications.js\` affiche une file vide.
+Le transport SMTP Node.js a été accepté par OVHcloud et le message
+de test a été reçu dans la boîte CSE.
+
+Pour préparer les protections du futur distributeur, un diagnostic
+**en lecture seule** est disponible :
+
+- \`src/inspect-decision-readiness.js\` : rapport **agrégé uniquement** ;
+- \`test/inspect-decision-readiness.test.js\` : 5 tests sans base ni SMTP ;
+- \`src/check-decision-readiness-e2e.js\` : 5 demandes et
+  notifications **entièrement fictives**, annulées avec \`ROLLBACK\`.
+
+Pour les modèles \`registration_approved\` et
+\`registration_rejected\`, le contrôle signale :
+
+- statut de livraison autre que \`not_configured\` ;
+- audience différente de \`employee\`, ou destinataire déjà renseigné ;
+- email non vérifié ;
+- inscription expirée ;
+- incohérence entre le statut de la demande et le modèle ;
+- conditions réunies pour une **étape future** :
+  \`conditions_met_sending_disabled\`.
+
+Les autres modèles sont classés \`template_outside_scope\` (non
+évalués à cette étape). **Même si toutes les conditions sont réunies,
+aucun email n'est émis**. La fonction est un diagnostic, et le futur
+distributeur devra appliquer les mêmes contrôles avant de résoudre
+l'adresse vérifiée et d'envoyer un message. Elle n'ajoute aucune
+permission SQL, n'ouvre aucune route HTTP, ne fait pas intervenir
+Nodemailer et ne publie aucune donnée nominative.
+
+### Déploiement limité aux tests du VPS
+
+Dans le terminal Ubuntu :
+
+\`\`\`bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/check-decision-readiness-e2e.js
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/inspect-decision-readiness.js
+\`\`\`
+
+Aucune migration SQL supplémentaire ni redémarrage du panneau
+administratif n'est nécessaire pour ce diagnostic.
+
+Le test PostgreSQL doit afficher \`"status":"ok"\`,
+\`"scenariosChecked":5\`, \`"rolledBack":true\`,
+\`"persisted":false\`, \`"smtpInvoked":false\` et
+\`"emailsSent":false\`.
+L'inspection finale peut afficher \`"conditions":[]\` tant qu'aucune
+notification persistante n'a été préparée.
+
+**La page publique de confirmation d'email et le service de
+distribution des emails ne sont toujours pas déployés.**
+Le site public et les inscriptions publiques restent fermés.
