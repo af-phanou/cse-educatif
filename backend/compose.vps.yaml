@@ -38,11 +38,13 @@ services:
       APP_DB_PASSWORD_FILE: /run/secrets/app_db_password
       ESTABLISHMENTS_DB_PASSWORD_FILE: /run/secrets/establishments_db_password
       REVIEWER_DB_PASSWORD_FILE: /run/secrets/registration_reviewer_db_password
+      ROSTER_DB_PASSWORD_FILE: /run/secrets/roster_db_password
     secrets:
       - postgres_password
       - app_db_password
       - establishments_db_password
       - registration_reviewer_db_password
+      - roster_db_password
     networks:
       - cse_private
 
@@ -127,6 +129,44 @@ services:
       timeout: 5s
       retries: 3
 
+  salaries_csv_admin:
+    build:
+      context: ./app/maquette/backend
+    command: ["node", "src/roster-private-server.js"]
+    restart: unless-stopped
+    # Port exclusivement sur le loopback du VPS. Tunnel SSH depuis Windows.
+    ports:
+      - "127.0.0.1:8090:3102"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "3102"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: cse_educatif
+      DB_USER: cse_roster_manager
+      DB_PASSWORD_FILE: /run/secrets/roster_db_password
+      ROSTER_TOKEN_FILE: /run/secrets/roster_panel_token
+    secrets:
+      - roster_db_password
+      - roster_panel_token
+    networks:
+      - cse_private
+      - cse_panel_bridge
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3102/healthz').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1));"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
 secrets:
   app_db_password:
     file: ./secrets/app_db_password
@@ -138,6 +178,10 @@ secrets:
     file: ./secrets/registration_reviewer_db_password
   registration_review_panel_token:
     file: ./secrets/registration_review_panel_token
+  roster_db_password:
+    file: ./secrets/roster_db_password
+  roster_panel_token:
+    file: ./secrets/roster_panel_token
 
 networks:
   cse_panel_bridge:
