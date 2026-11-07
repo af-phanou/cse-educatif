@@ -83,3 +83,16 @@ Les thèmes Noël et Halloween disposent désormais d'une véritable identité g
 - Les autres thèmes saisonniers restent tels qu'ils existaient en V20.
 
 Fichiers : `seasonal-festive-v23.css` et `seasonal-festive-v23.js`. Le choix du thème reste stocké sous `cse_fusion_v20_seasonal_theme` et se fait dans **Administration → Pages du site / Thèmes du site**. Les tests de syntaxe ont été effectués, pas encore la recette visuelle complète dans un navigateur.
+
+## Refonte graphique des thèmes — V24
+
+La V24 **remplace intégralement les dessins de la V23** par deux directions visuelles plus professionnelles :
+
+- **Noël premium** : fond rouge profond et vert sapin, touches dorées, bokeh, couronnes lumineuses et rameaux botaniques en tracés fins, chute de très petits flocons.
+- **Halloween dark chic** : nuances aubergine, violet nuit, orange cuivre, lueur de lune, brume délicate, silhouettes de chauves-souris et détails de toile en filigrane, particules ambre légères.
+
+Les fonds, le bandeau d'accueil, les boutons, la navigation et les cartes produits s'adaptent ; les données de la boutique ne changent pas. Les anciens dessins/citrouilles et sapins cartoon de V23 ne sont plus chargés.
+
+Fichiers : `seasonal-premium-v24.css` et `seasonal-premium-v24.js`. Le sélecteur dans **Administration → Thèmes du site** conserve son fonctionnement : choisir le thème puis **Appliquer au site public**. Désactiver les animations avec la case du panneau. Les préférences système de réduction des mouvements sont respectées ; les éléments décoratifs ne capturent pas les clics.
+
+**Limites** : la V24 est une maquette HTML avec stockage de thème dans le navigateur. La syntaxe JavaScript a été vérifiée, mais la recette visuelle et responsive exhaustive sur navigateur reste à effectuer.
