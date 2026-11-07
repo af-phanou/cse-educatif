@@ -7,7 +7,9 @@ const {
   isAllowedMutationOrigin,
   requestPath,
   isAllowedReviewHost,
-  isAllowedReviewOrigin
+  isAllowedReviewOrigin,
+  isAllowedRosterHost,
+  isAllowedRosterOrigin
 } = require("../src/private-admin-auth");
 
 const token = "a".repeat(64);
@@ -74,4 +76,22 @@ test("les decisions exigent la meme origine locale que le panneau", () => {
   assert.equal(isAllowedReviewOrigin("https://cse-educatif-rxtg.fr"), false);
   assert.equal(isAllowedReviewOrigin("http://127.0.0.1:18088"), false);
   assert.equal(isAllowedReviewOrigin(undefined), false);
+});
+
+
+test("le panneau CSV n'accepte que les ports de tunnel localhost prevus",()=>{
+  assert.equal(isAllowedRosterHost("127.0.0.1:8090"),true);
+  assert.equal(isAllowedRosterHost("localhost:8090"),true);
+  assert.equal(isAllowedRosterHost("127.0.0.1:18090"),true);
+  assert.equal(isAllowedRosterHost("localhost:18090"),true);
+  assert.equal(isAllowedRosterHost("cse-educatif-rxtg.fr"),false);
+  assert.equal(isAllowedRosterHost("127.0.0.1:8089"),false);
+});
+
+test("seule l'origine HTTP locale peut modifier les listes CSV",()=>{
+  assert.equal(isAllowedRosterOrigin("http://127.0.0.1:18090"),true);
+  assert.equal(isAllowedRosterOrigin("http://localhost:8090"),true);
+  assert.equal(isAllowedRosterOrigin("https://cse-educatif-rxtg.fr"),false);
+  assert.equal(isAllowedRosterOrigin("http://127.0.0.1:8089"),false);
+  assert.equal(isAllowedRosterOrigin(null),false);
 });
