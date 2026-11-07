@@ -456,4 +456,73 @@ ordersView=function(){
     })
     .replace('colspan="7"','colspan="8"');
 };
+</script>
+<style>
+.auto-pin-backdrop{position:fixed;inset:0;z-index:99;background:#0f2660ae;display:flex;justify-content:center;align-items:center;padding:18px}
+.auto-pin-dialog{background:white;color:#153353;width:min(430px,100%);padding:25px;border-radius:16px;box-shadow:0 24px 70px #001b4c45}
+.auto-pin-dialog h2{margin:0 0 7px}.auto-pin-dialog p{color:#60728a}
+.auto-pin-dialog input{font-size:24px;letter-spacing:9px;text-align:center;max-width:230px;width:100%;border:1px solid #bed4ed;border-radius:9px;padding:10px;display:block;margin:14px auto}
+.auto-pin-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+.auto-pin-error{color:#b12f45!important;font-size:12px;min-height:17px}
+</style>
+<script>
+/* V14 : verrouillage visuel du réglage automatique par code PIN de démonstration.
+   Le code est contrôlé dans le navigateur : aucune protection serveur réelle. */
+const AUTO_PIN_DEMO="2027";
+let pendingAutoMode=null;
+let pinFailures=0;
+function closeAutoPin(){
+  pendingAutoMode=null;
+  const root=document.getElementById("autoPinDialogRoot");
+  if(root)root.remove();
+  render(); // Repositionne la coche sur l'état réellement enregistré.
+}
+function requestAutoPin(enabled){
+  pendingAutoMode=Boolean(enabled);
+  document.getElementById("autoPinDialogRoot")?.remove();
+  const root=document.createElement("div");
+  root.id="autoPinDialogRoot";
+  root.className="auto-pin-backdrop";
+  root.innerHTML='<section class="auto-pin-dialog" role="dialog" aria-modal="true" aria-labelledby="pinTitle">'+
+    '<h2 id="pinTitle">🔒 Autorisation administrateur</h2>'+
+    '<p>Entrez votre code PIN à 4 chiffres pour '+(enabled?'activer':'désactiver')+' la validation automatique des commandes payées.</p>'+
+    '<label for="autoPinInput"><b>Code de sécurité</b></label>'+
+    '<input id="autoPinInput" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" aria-describedby="autoPinMessage" placeholder="••••">'+
+    '<p id="autoPinMessage" class="auto-pin-error" role="alert"></p>'+
+    '<p class="small muted">Code de démonstration : <b>2027</b>. La version réelle utilisera une vérification sécurisée côté serveur.</p>'+
+    '<div class="auto-pin-actions"><button class="btn" onclick="closeAutoPin()">Annuler</button><button class="btn primary" onclick="confirmAutoPin()">Confirmer</button></div></section>';
+  document.body.appendChild(root);
+  const input=document.getElementById("autoPinInput");
+  input.focus();
+  input.addEventListener("input",()=>{input.value=input.value.replace(/\D/g,"").slice(0,4);document.getElementById("autoPinMessage").textContent=""});
+  input.addEventListener("keydown",e=>{if(e.key==="Enter")confirmAutoPin();if(e.key==="Escape")closeAutoPin()});
+}
+function confirmAutoPin(){
+  const input=document.getElementById("autoPinInput");
+  const value=input?.value||"";
+  const err=document.getElementById("autoPinMessage");
+  if(!/^\d{4}$/.test(value)){err.textContent="Saisissez exactement 4 chiffres.";return}
+  if(value!==AUTO_PIN_DEMO){
+    pinFailures++;
+    err.textContent="Code incorrect. Le réglage n'a pas été modifié.";
+    input.value="";input.focus();
+    return;
+  }
+  pinFailures=0;
+  const enabled=pendingAutoMode;
+  document.getElementById("autoPinDialogRoot")?.remove();
+  pendingAutoMode=null;
+  if(enabled===autoPaidOrders){render();return}
+  autoPaidOrders=enabled;
+  try{localStorage.setItem(AUTO_ORDER_KEY,String(enabled))}catch(e){}
+  if(enabled){
+    const result=processEligiblePaidOrders();
+    render();
+    toast("Validation automatique activée : "+result.success+" commande(s) traitée(s) en simulation.");
+  }else{
+    render();
+    toast("Validation automatique désactivée.");
+  }
+}
+toggleAutomaticPaidOrders=requestAutoPin;
 </script></body></html>
