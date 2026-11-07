@@ -28,7 +28,7 @@ function cardForSupplier(s,entries){
  const sold=entries.filter(t=>t.supplier===s.name&&t.status==="Vendu").length;
  return '<button type="button" class="t26-supplier '+(v26Supplier===s.name?"selected":"")+'" onclick="cseTicketSelectSupplier('+jsArg(s.name)+')">'+
  '<div class="t26-supplier-icon">▤</div><div><strong>'+escHtml(s.name)+'</strong><small>'+escHtml(s.category)+'</small></div>'+
- '<div class="t26-supplier-count">'+count+' libre(s)<br>'+sold+' vendu(s)</div></button>';
+ '<div class="t26-supplier-count">'+count+' libre(s) · '+reserved+' réservé(s)<br>'+sold+' vendu(s)</div></button>';
 }
 function body(){
  const all=store.suppliers();
@@ -104,7 +104,7 @@ async function refresh(){
  '<td><span class="t26-status '+(t.status==="Vendu"?"sold":t.status==="Réservé"?"reserved":"free")+'">'+escHtml(t.status)+'</span></td>'+
  '<td><div class="t26-actions"><button class="btn" onclick="cseTicketDownload('+jsArg(t.id)+')">↓ PDF</button>'+
  (t.status==="Libre"?'<button class="btn t26-assign-btn" onclick="cseTicketChoose('+jsArg(t.id)+')">Attribuer</button>':'')+'</div></td></tr>').join("")||
- '<tr><td colspan="5" class="t26-empty">Aucun PDF dans le dossier « '+v26Folder+' ». '+(v26Folder==="Libres"?"Importez des billets ci-dessus pour commencer.":"Les billets attribués apparaîtront ici.")+'</td></tr>';
+ '<tr><td colspan="5" class="t26-empty">Aucun PDF dans le dossier « '+v26Folder+' ». '+(v26Folder==="Libres"?"Importez des billets ci-dessus pour commencer.":v26Folder==="Réservés"?"Les billets réservés aux commandes web apparaîtront ici.":"Les billets attribués apparaîtront ici.")+'</td></tr>';
 }
 function filterSuppliers(term){
  const q=String(term||"").trim().toLocaleLowerCase("fr");
