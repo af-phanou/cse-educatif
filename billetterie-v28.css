@@ -53,3 +53,7 @@
 .v28-confirm-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:19px 0}
 @media(max-width:1120px){.v28-mapping-list{grid-template-columns:1fr}.t26-summary{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:760px){.v28-panel{padding:13px!important}.t26-summary{grid-template-columns:repeat(2,1fr)}.v28-client-order{padding:15px}}
+
+.v28-template-choice{display:flex;align-items:center;gap:5px;color:#536e8d;font-size:10px;font-weight:650;white-space:nowrap}
+.v28-template-choice select{padding:6px 7px;border-radius:7px;border:1px solid #bfcfe1;background:#fff;color:#17375e;font-size:10px}
+.t26-status.reserved{background:#fff2d8;color:#9a6714}
