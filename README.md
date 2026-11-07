@@ -131,3 +131,13 @@ La maquette GitHub Pages est un site statique. Les PDF importés sont **enregist
 Pour la future application OVH, un service sécurisé stockera réellement les fichiers sous `Billetterie/<Catégorie>/<Fournisseur>/Libres/`, puis exécutera un renommage et un déplacement atomique vers `.../Vendu/` avec contrôle de stock, traçabilité, réservation transactionnelle et accès restreint. Si Dropbox est retenu, on utilisera son API autorisée ; sinon un stockage privé sur OVH convient. Seul le salarié concerné devra pouvoir télécharger son billet via une URL authentifiée, et les emails avec billet ne partiront qu'après validation du paiement ou dérogation autorisée. **La V26 n'envoie pas d'emails réels** et ne remplace pas les contrôles serveur d'authentification, de paiement et d'accès.
 
 Fichiers : `billetterie-v26-stockage.js`, `billetterie-v26-admin.js`, `billetterie-v26-salarie.js`, `billetterie-v26.css`.
+
+## V28 — Commande de billet reliée au stock PDF
+
+Préparation : dans Administration > Billetterie, relier chaque produit à son fournisseur de PDF. Importer les billets dans Libres, en précisant si besoin la déclinaison. Les associations Kinépolis/Cinéma Lumière et Parc partenaire/Parc Aventure sont des exemples fictifs à adapter.
+
+À la commande sur le site salarié, le moteur cherche automatiquement les PDF disponibles dans le fournisseur correspondant et les place atomiquement dans Réservés, sans possibilité de double attribution. Si le stock est insuffisant, l'achat est refusé avant enregistrement. Une fois le paiement confirmé (simulation sur GitHub), le mode automatique peut attribuer le billet ou un administrateur valide manuellement ; les PDF sont alors renommés Prenom_Nom_original.pdf et passés dans Vendu. Le salarié les retrouve dans Mes billets. Une annulation avant livraison restitue les PDF et leur déclinaison d'origine dans Libres.
+
+Emails : cinq modèles de messages sélectionnables ; bouton d'export d'un brouillon .eml contenant les PDF délivrés. L'administrateur doit ouvrir ce fichier dans sa messagerie et l'envoyer manuellement. Le mode automatique marque uniquement un envoi SIMULÉ. Aucun email réel n'est envoyé sur GitHub Pages.
+
+Fichiers ajoutés : billetterie-v28-commandes.js, billetterie-v28-site.js, billetterie-v28-admin.js et billetterie-v28.css. Stockage PDF IndexedDB local et commandes dans localStorage. Un serveur OVH sera nécessaire pour sécuriser les paiements, authentifier les utilisateurs, stocker les PDF sur le serveur, envoyer les emails réels et gérer une expiration des réservations impayées. Le code PIN de démonstration n'est pas une protection de production.
