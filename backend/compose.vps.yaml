@@ -1,0 +1,22 @@
+# A copier vers /srv/cse-educatif/compose.api.yaml
+# Complete compose.yaml (PostgreSQL) et compose.override.yaml (Caddy).
+# Aucun port de l'API n'est publie sur le VPS.
+services:
+  api:
+    build:
+      context: ./app/maquette/backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "3000"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: cse_educatif
+      DB_USER: cse_dbadmin
+      DB_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    networks:
+      - cse_private
