@@ -54,7 +54,7 @@ test("accuse de reception ne promet pas d'activation", () => {
 
 test("alerte admin ne contient pas d'identite personnelle", () => {
   const mail = buildReviewRequiredEmail();
-  assert.match(mail.text, /vérification/);
+  assert.match(mail.subject, /vérification/);
   assert.match(mail.text, /Aucune donnée nominative/);
   assert.equal(mail.text.includes("@example.invalid"), false);
 });
