@@ -10,6 +10,7 @@ COPY src/ ./src/
 COPY test/ ./test/
 COPY migrations/ ./migrations/
 COPY public/ ./public/
+COPY examples/ ./examples/
 USER node
 EXPOSE 3000
 
