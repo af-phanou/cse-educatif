@@ -129,7 +129,7 @@ Commandes de controle VPS (donnees uniquement fictives) :
 cd /srv/cse-educatif
 git -C app/maquette pull --ff-only
 sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
-sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api node --test 'test/*.test.js'
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
 ```
 
 Puis, apres validation des tests, appliquer la migration restrictive :
