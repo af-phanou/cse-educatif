@@ -95,7 +95,7 @@
         throw new Error("Réponse de sécurité inattendue.");
       }
       await refresh();
-      message("Décision enregistrée. Aucun compte actif et aucun email envoyé.");
+      message("Décision enregistrée. Notification préparée pour un futur envoi, aucun compte activé et aucun email envoyé.");
     } catch (error) {
       message(error.message, true);
       try { await refresh(); } catch { /* conserver le message original */ }
