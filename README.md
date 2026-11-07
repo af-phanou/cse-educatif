@@ -111,3 +111,23 @@ Le site public et l'espace salarié disposent d'une présentation de boutique en
 Fichiers : `boutique-v25.css` et `boutique-v25.js`, chargés par `CSE_Educatif_Site_Espace_Salarie_Fusion_V9.html`. La navigation entre site public, salarié et administration est conservée via `index.html`.
 
 **Tests** : syntaxe JavaScript vérifiée. Un test de fonctionnement ciblé a confirmé le rendu du catalogue et de la fiche produit, le changement de déclinaison, la quantité ajoutée au panier et le filtrage. L'ensemble des parcours visuels et responsive n'a pas encore fait l'objet d'une recette complète. Les commandes et règlements restent simulés localement.
+
+## Billetterie PDF : import, attribution et classement Libres / Vendu — V26
+
+La maquette contient maintenant un espace **Administration → Billetterie** fonctionnel pour les tests :
+
+1. Sélectionner une catégorie (Cinéma, Parcs d'attractions, etc.) puis un fournisseur (par exemple « Cinéma Lumière »).
+2. Importer un ou plusieurs PDF depuis son ordinateur (glisser-déposer ou bouton **Importer des billets PDF**). Chaque original est ajouté au dossier **Libres** du fournisseur. Les doublons de nom sont refusés pour ce fournisseur.
+3. Sélectionner une **commande de démonstration** correspondant au fournisseur. Les commandes intégralement payées sont autorisées ; un règlement non validé exige une action de forçage administrateur et une confirmation explicite.
+4. Cliquer sur **Attribuer les billets** : l'application choisit autant de PDF libres que la quantité demandée, met à jour leur enregistrement, renomme leur *nom de téléchargement* sous la forme `Prenom_Nom_nom-original.pdf` et les affiche dans **Vendu**. La transaction IndexedDB protège contre une double attribution du même billet. Chaque attribution mémorise le salarié, la commande, la facture et la date.
+5. Dans **Espace salarié → Mes billets**, le bénéficiaire voit sa liste avec les PDF à télécharger. Le salarié de démonstration préchargé est **Claire Leroy** ; pour le tester, utilisez la commande fictive payée **CMD-27005** chez **Cinéma Lumière**.
+
+Un paquet de **10 PDF fictifs avec QR codes uniques** a été fourni dans la conversation (six `cinema_001.pdf` à `cinema_006.pdf`, quatre `parc_001.pdf` à `parc_004.pdf`). Les QR sont des codes de test **non valables**. Il faut décompresser le paquet avant l'import des fichiers.
+
+### Important : fonctionnement de démonstration et production
+
+La maquette GitHub Pages est un site statique. Les PDF importés sont **enregistrés uniquement dans IndexedDB du navigateur**, PAS sur GitHub, Dropbox ni OVH. Le dossier **Vendu** et le renommage sont simulés au niveau du stockage local : ils **ne modifient pas les fichiers originaux sur le disque de l'administrateur**. En revanche, le téléchargement du billet vendu utilise le nouveau nom.
+
+Pour la future application OVH, un service sécurisé stockera réellement les fichiers sous `Billetterie/<Catégorie>/<Fournisseur>/Libres/`, puis exécutera un renommage et un déplacement atomique vers `.../Vendu/` avec contrôle de stock, traçabilité, réservation transactionnelle et accès restreint. Si Dropbox est retenu, on utilisera son API autorisée ; sinon un stockage privé sur OVH convient. Seul le salarié concerné devra pouvoir télécharger son billet via une URL authentifiée, et les emails avec billet ne partiront qu'après validation du paiement ou dérogation autorisée. **La V26 n'envoie pas d'emails réels** et ne remplace pas les contrôles serveur d'authentification, de paiement et d'accès.
+
+Fichiers : `billetterie-v26-stockage.js`, `billetterie-v26-admin.js`, `billetterie-v26-salarie.js`, `billetterie-v26.css`.
