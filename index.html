@@ -10,13 +10,13 @@
 <body>
 <header><div class="brand"><span class="logo" aria-hidden="true">✦</span><div>CSE Éducatif<div><small>Maquette générale · bleu & blanc</small></div></div></div>
 <nav aria-label="Espaces de la démonstration"><button data-view="public">Site public & salariés</button><button data-view="admin">Administration</button><button data-view="catalogue">Catalogue V8</button></nav></header>
-<div class="banner"><span>Mode démonstration — navigation unifiée, modules d'origine conservés. Les données ne sont pas encore synchronisées entre les espaces.</span><a id="separate" target="_blank" rel="noopener">Ouvrir cet espace seul ↗</a></div>
+<div class="banner"><span>Mode démonstration — catalogue partagé entre administration et espace salarié dans le même navigateur. Les autres données restent fictives et indépendantes.</span><a id="separate" target="_blank" rel="noopener">Ouvrir cet espace seul ↗</a></div>
 <main><div class="frame"><iframe id="screen" title="Espace CSE Éducatif" loading="eager"></iframe></div></main>
 <script>
 const views={
- public:{file:"CSE_Educatif_Site_Espace_Salarie_V1.html",title:"Site public et espace salarié"},
- admin:{file:"CSE_Educatif_Administration_V7_Editeur_Pages(1).html",title:"Administration"},
- catalogue:{file:"CSE_Educatif_Catalogue_V8(2).html",title:"Catalogue V8"}
+ public:{file:"CSE_Educatif_Site_Espace_Salarie_Fusion_V9.html",title:"Site public et espace salarié"},
+ admin:{file:"CSE_Educatif_Administration_Fusion_V9.html",title:"Administration"},
+ catalogue:{file:"CSE_Educatif_Administration_Fusion_V9.html#products",title:"Catalogue V8"}
 };
 const frame=document.getElementById("screen"),link=document.getElementById("separate");
 function show(view){if(!views[view])view="public";const target=views[view];frame.src=encodeURI(target.file);frame.title=target.title;link.href=encodeURI(target.file);document.querySelectorAll("[data-view]").forEach(b=>{const on=b.dataset.view===view;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});history.replaceState(null,"","#"+view)}
