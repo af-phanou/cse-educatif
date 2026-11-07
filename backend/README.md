@@ -305,3 +305,69 @@ curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8088/; echo
 La derniere commande doit repondre `200` (requete GET).
 La colonne `PORTS` du panneau doit afficher
 `127.0.0.1:8088->3100/tcp`.
+
+
+## Etape 27 — Dossier d'inscription prive (migration 005)
+
+Cette etape prepare **le traitement cote serveur**, mais n'ouvre
+pas encore l'inscription sur le site officiel.
+
+### Ce qui a ete ajoute
+
+- `cse.registration_requests` : donnees saisies par le salarie,
+  uniquement statut initial `pending`. Aucun compte actif ni mot de
+  passe n'est cree a cette etape.
+- `cse.registration_reviews` : file de validation manuelle si le
+  salarie est absent du CSV, ambigu ou si aucun import actif n'existe.
+- `cse.email_outbox` : preparation de la confirmation au salarie et
+  de la notification de revue administrative. Tous les messages restent
+  `not_configured` : **aucun email n'est encore envoye**.
+- `src/registration-submission.js` : traite une demande dans
+  une transaction PostgreSQL, utilise le CSV actif et le code
+  d'etablissement, empeche les doublons de demandes en attente,
+  prepare les notifications, journalise sans exposer les noms.
+- `src/check-registration-setup.js` : controle les permissions SQL
+  de l'API sans creer de demande ni lire de donnees personnelles.
+- `POST /api/inscriptions` : route d'essai interne **DESACTIVEE
+  PAR DEFAUT**. La configuration Docker ne definit pas
+  `CSE_REGISTRATION_TEST_ONLY=1`. Ne pas activer sur le site
+  public tant que l'anti-abus durable, la verification de l'email,
+  l'administration, le SMTP, les sauvegardes et le RGPD ne sont
+  pas finalises. Caddy ne publie pas cette route.
+- Renforcement des privileges : `cse_app` peut inserer des demandes
+  mais ne peut pas modifier leur statut ni consulter les comptes
+  existants. La liste RH reste en lecture minimale.
+
+### Installation sur VPS
+
+Dans le terminal Ubuntu :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml exec -T api node src/check-registration-setup.js
+```
+
+Le dernier controle doit afficher `"status":"ok"` et cinq verifications
+toutes a `true`. Aucune donnee RH n'est chargee par cette operation.
+
+### Etapes indispensables avant toute inscription reelle
+
+1. Authentification et gestion des mots de passe haches (Argon2id),
+   verification de l'email par lien a usage unique, puis activation.
+2. Administration authentifiee pour valider/refuser les demandes
+   manuelles et consulter les dossiers avec permissions au strict besoin.
+3. Import CSV mensuel reserve aux administrateurs, avec controles
+   de qualite et journalisation ; ne jamais faire de rapprochement
+   automatique des homonymes.
+4. SMTP et emails transactionnels reels, protections anti-abus partagees,
+   surveillance, sauvegardes testees, procedure d'effacement des demandes
+   expirees et mentions RGPD (VPS heberge au Canada).
+
+**N'importer aucun CSV RH reel et ne saisir aucune coordonnee personnelle
+de salarie pendant cette phase.**
