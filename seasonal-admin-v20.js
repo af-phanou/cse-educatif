@@ -16,7 +16,7 @@ function panel(){
   '<label class="cse-season-option"><input type="radio" name="cse-season-theme" value="'+t.id+'"'+(draft.theme===t.id?' checked':'')+' onchange="cseChooseSeason(\''+t.id+'\')">'+
   '<span class="season-glyph" aria-hidden="true">'+t.glyph+'</span><span>'+escTheme(t.name)+'<small>'+escTheme(t.description)+'</small></span></label>'
  ).join("");
- return '<section class="cse-season-manager" aria-label="Personnalisation saisonnière du site public">'+
+ return '<section id="cseSeasonPanel" class="cse-season-manager" aria-label="Personnalisation saisonnière du site public">'+
  '<div class="row" style="justify-content:space-between;align-items:center"><div><h3>Thème du site public</h3>'+
  '<p class="sub">Choisissez une seule ambiance saisonnière. Le logo CSE et la navigation restent bleu et blanc.</p></div>'+
  '<span class="badge">'+escTheme(currentLabel())+'</span></div>'+
@@ -39,6 +39,42 @@ window.cseApplySeason=()=>{
 };
 window.cseCancelSeason=()=>{draft=source.load();if(typeof render==="function")render()};
 cms=function(){return panel()+oldCMS()};
+
+/* Navigation explicite : l'outil reste dans Pages du site, mais dispose d'un accès direct. */
+if(typeof navRender==="function"){
+  const oldNavRenderSeason=navRender;
+  navRender=function(){
+    oldNavRenderSeason();
+    const nav=document.getElementById("nav");
+    if(!nav || document.getElementById("seasonNavButton"))return;
+    const button=document.createElement("button");
+    button.id="seasonNavButton";
+    button.type="button";
+    button.textContent="✦  Thèmes du site";
+    button.title="Ouvrir le sélecteur des thèmes saisonniers";
+    button.onclick=()=>{
+      if(typeof navigate==="function")navigate("cms");
+      else if(typeof route!=="undefined"){route="cms";render()}
+      const target=document.getElementById("cseSeasonPanel");
+      if(target)target.scrollIntoView({behavior:"smooth",block:"start"});
+    };
+    const pageButton=Array.from(nav.querySelectorAll("button")).find(el=>el.textContent.includes("Pages du site"));
+    if(pageButton)pageButton.insertAdjacentElement("afterend",button);
+    else nav.prepend(button);
+  };
+}
+/* Garantie d'affichage même si une autre extension a remplacé l'éditeur de pages. */
+if(typeof render==="function"){
+  const oldRenderSeason=render;
+  render=function(){
+    oldRenderSeason();
+    if(typeof route==="undefined" || route!=="cms")return;
+    const content=document.getElementById("content");
+    if(content && !document.getElementById("cseSeasonPanel")){
+      content.insertAdjacentHTML("afterbegin",panel());
+    }
+  };
+}
 window.addEventListener("storage",e=>{
  if(e.key===source.KEY && typeof route!=="undefined" && route==="cms"){
   draft=source.load();if(typeof render==="function")render();
