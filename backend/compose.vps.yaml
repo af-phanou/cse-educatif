@@ -1,6 +1,6 @@
-# A copier vers /srv/cse-educatif/compose.api.yaml
-# Complete compose.yaml (PostgreSQL) et compose.override.yaml (Caddy).
-# Aucun port de l'API n'est publie sur le VPS.
+# A copier vers /srv/cse-educatif/compose.api.yaml.
+# Complete les fichiers compose.yaml (PostgreSQL) et compose.override.yaml (Caddy).
+# L'API n'expose aucun port public ; seules les sondes privees sont disponibles.
 services:
   api:
     build:
@@ -14,9 +14,34 @@ services:
       DB_HOST: db
       DB_PORT: "5432"
       DB_NAME: cse_educatif
-      DB_USER: cse_dbadmin
-      DB_PASSWORD_FILE: /run/secrets/postgres_password
+      DB_USER: cse_app
+      DB_PASSWORD_FILE: /run/secrets/app_db_password
     secrets:
-      - postgres_password
+      - app_db_password
     networks:
       - cse_private
+
+  migrate:
+    build:
+      context: ./app/maquette/backend
+    command: ["node", "src/migrate.js"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: cse_educatif
+      DB_ADMIN_USER: cse_dbadmin
+      DB_ADMIN_PASSWORD_FILE: /run/secrets/postgres_password
+      APP_DB_PASSWORD_FILE: /run/secrets/app_db_password
+    secrets:
+      - postgres_password
+      - app_db_password
+    networks:
+      - cse_private
+
+secrets:
+  app_db_password:
+    file: ./secrets/app_db_password
