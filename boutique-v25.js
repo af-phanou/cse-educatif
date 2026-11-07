@@ -31,12 +31,22 @@
     if (/^(data:image\/(?:png|jpeg|jpg|webp);base64,|https:\/\/)/i.test(image)) {
       return '<img class="v25-photo" src="' + esc(image) + '" alt="' + esc(p.name) + '" loading="lazy">';
     }
-    return '<div class="v25-placeholder" role="img" aria-label="Image du produit non renseignée">' +
-      '<svg viewBox="0 0 120 120" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-      '<rect x="25" y="31" width="70" height="58" rx="9" stroke="currentColor" stroke-width="2.5"/>' +
-      '<circle cx="48" cy="49" r="7" stroke="currentColor" stroke-width="2.5"/>' +
-      '<path d="M32 78l21-22 15 14 11-12 11 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '</svg><span>Image produit à ajouter</span></div>';
+    // Illustration vectorielle générique par univers : aucune fausse photographie de produit.
+    const cat = String(p.category||"").toLocaleLowerCase("fr");
+    const family = /cinéma|cinema|spectacle|concert/.test(cat) ? "cinema" :
+      /parc|sortie|loisir/.test(cat) ? "park" :
+      /panier|fraîcheur|fraicheur|aliment/.test(cat) ? "fresh" :
+      /sport/.test(cat) ? "sport" : "generic";
+    const art = {
+      cinema:'<rect x="17" y="23" width="86" height="67" rx="8"/><path d="M17 40h86M34 23l10 17M62 23l10 17M89 23l10 17M36 63h47M36 75h27"/>',
+      park:'<circle cx="60" cy="51" r="32"/><circle cx="60" cy="51" r="7"/><path d="M60 19v64M28 51h64M37 28l46 46M83 28L37 74M60 83l-22 27M60 83l22 27M28 110h64"/>',
+      fresh:'<path d="M32 52h56l-6 48H38zM43 52c-8-15 2-29 13-33 9 11 7 24 4 33M64 52c-5-17 7-33 22-34 4 18-3 31-14 34M40 68h40M44 82h32"/>',
+      sport:'<circle cx="60" cy="57" r="36"/><path d="M43 33l16-7 18 12-4 18-22 5-13-15zM51 61l9 18 24-6M43 33l-15 11M77 38l13 2M60 79l-1 15"/>',
+      generic:'<path d="M25 34h70v20c-12 0-12 16 0 16v20H25V70c12 0 12-16 0-16zM65 34v56" stroke-dasharray="0 0 M0 0"/><path d="M68 34v56" stroke-dasharray="5 6"/>'
+    };
+    return '<div class="v25-placeholder v25-placeholder-' + family + '" role="img" aria-label="Illustration générique de la catégorie ' + esc(p.category) + '">' +
+      '<svg viewBox="0 0 120 120" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">' +
+      art[family] + '</svg><span>Illustration de présentation</span></div>';
   };
   const variantOptions = p => validVariants(p).map(v =>
     '<option value="' + esc(v.id) + '" ' + (String(currentVariant(p)?.id) === String(v.id) ? 'selected' : '') + '>' +
@@ -115,7 +125,7 @@
       '<nav class="v25-breadcrumb" aria-label="Fil d’Ariane"><button onclick="v25BackToShop()">Boutique</button><span>›</span><button onclick="v25SetCategory(' + idArg(p.category) + ')">' + esc(p.category) + '</button><span>›</span><strong>' + esc(p.name) + '</strong></nav>' +
       '<div class="v25-detail-layout"><section class="v25-detail-photo">' +
       '<div class="v25-detail-photo-frame">' + productImage(p, true) + '</div>' +
-      '<div class="v25-photo-caption">Visuel du produit · ' + esc(p.category) + '</div>' +
+      '<div class="v25-photo-caption">Photo ou illustration · ' + esc(p.category) + '</div>' +
       '</section><section class="v25-detail-info"><div class="v25-eyebrow">' + esc(p.category) + '</div>' +
       '<h1>' + esc(p.name) + '</h1>' +
       '<p class="v25-detail-desc">' + esc(p.description || 'Choisissez parmi les formules proposées à tarif CSE.') + '</p>' +
