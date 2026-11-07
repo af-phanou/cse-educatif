@@ -525,4 +525,132 @@ function confirmAutoPin(){
   }
 }
 toggleAutomaticPaidOrders=requestAutoPin;
+</script>
+<style>
+.discount-batch-controls{background:#f0f6ff;border:1px solid #d1e3f6;padding:14px;border-radius:12px;margin-bottom:15px;display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.discount-batch-controls select{border:1px solid #c5d6eb;border-radius:8px;padding:9px}
+</style>
+<script>
+/* V15: générateur local de codes uniques avec quota par code et export CSV.
+   Prototype : pas de serveur ni distribution automatique. */
+const PROMO_BATCH_KEY="cse_fusion_v15_unique_batches";
+let promoBatches=[];
+let promoBatchFilter="Tous";
+try{
+ const saved=JSON.parse(localStorage.getItem(PROMO_BATCH_KEY));
+ if(saved && Array.isArray(saved.batches) && Array.isArray(saved.codes)){
+  promoBatches=saved.batches;
+  for(const d of saved.codes){
+   if(d && !discounts.some(x=>x.code===d.code)){
+    discounts.push(d);discountCounter=Math.max(discountCounter,Number(d.id)+1);
+   }
+  }
+ }
+}catch(e){}
+function persistPromoBatches(){
+ try{localStorage.setItem(PROMO_BATCH_KEY,JSON.stringify({
+  batches:promoBatches,codes:discounts.filter(d=>d.batchId)
+ }))}catch(e){toast("Stockage local indisponible pour les lots")}
+}
+function randomPromo(length){
+ const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+ let value="";
+ if(window.crypto && window.crypto.getRandomValues){
+  const threshold=Math.floor(256/chars.length)*chars.length;
+  const bytes=new Uint8Array(length*2);
+  while(value.length<length){
+   window.crypto.getRandomValues(bytes);
+   for(const v of bytes){
+    if(v<threshold)value+=chars[v%chars.length];
+    if(value.length>=length)break;
+   }
+  }
+ }else{
+  for(let i=0;i<length;i++)value+=chars[Math.floor(Math.random()*chars.length)];
+ }
+ return value;
+}
+function openPromoBatch(){
+ showModal("<h2>Générer un lot de codes uniques</h2>",
+ '<p class="sub">Création de codes distincts, chacun utilisable une seule fois par défaut.</p>'+
+ '<div class="row"><div class="field"><label>Nom du lot</label><input id="batchName" placeholder="Ex. Noël 2027"></div>'+
+ '<div class="field"><label>Nombre de codes (1 à 1000)</label><input type="number" id="batchQty" min="1" max="1000" value="20"></div>'+
+ '<div class="field"><label>Préfixe facultatif (lettres et chiffres)</label><input id="batchPrefix" maxlength="12" placeholder="CSE27"></div></div>'+
+ '<div class="row"><div class="field"><label>Type</label><select id="batchType"><option value="percent">Pourcentage</option><option value="fixed">Montant en euros</option></select></div>'+
+ '<div class="field"><label>Valeur de remise</label><input type="number" id="batchValue" min="0.01" step="0.01" value="10"></div>'+
+ '<div class="field"><label>Achat minimum (€)</label><input type="number" id="batchMin" min="0" step="0.01" value="0"></div></div>'+
+ '<div class="row"><div class="field"><label>Utilisations par code</label><input type="number" id="batchUses" min="1" max="1000" value="1"></div>'+
+ '<div class="field"><label>Expiration</label><input type="date" id="batchExpiry" value="2027-12-31"></div></div>'+
+ '<div class="row"><div class="field"><label>Établissement</label><select id="batchEst"><option>Tous</option>'+establishments.map(x=>'<option>'+esc(x)+'</option>').join("")+'</select></div>'+
+ '<div class="field"><label>Catégorie</label><select id="batchCategory"><option>Tous</option>'+categories.map(x=>'<option>'+esc(x)+'</option>').join("")+'</select></div></div>'+
+ '<label><input id="batchActive" type="checkbox" checked> Activer immédiatement les codes</label>'+
+ '<div class="note">Les codes sont générés avec 10 caractères aléatoires et contrôlés contre tous les codes existants. Les données restent locales dans cette maquette.</div>'+
+ '<div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeModal()">Annuler</button>'+
+ '<button class="btn primary" onclick="createPromoBatch()">Générer les codes</button></div>');
+}
+function createPromoBatch(){
+ const name=document.getElementById("batchName").value.trim();
+ const qty=Number(document.getElementById("batchQty").value);
+ const prefix=document.getElementById("batchPrefix").value.trim().toUpperCase();
+ const type=document.getElementById("batchType").value;
+ const value=Number(document.getElementById("batchValue").value);
+ const minimum=Number(document.getElementById("batchMin").value);
+ const limit=Number(document.getElementById("batchUses").value);
+ const expires=document.getElementById("batchExpiry").value;
+ const est=document.getElementById("batchEst").value;
+ const scope=document.getElementById("batchCategory").value;
+ const enabled=document.getElementById("batchActive").checked;
+ if(!name || !Number.isInteger(qty)||qty<1||qty>1000|| !/^[A-Z0-9]{0,12}$/.test(prefix)||
+ !Number.isFinite(value)||value<=0||(type==="percent"&&value>100)|| !Number.isFinite(minimum)||minimum<0||
+ !Number.isInteger(limit)||limit<1||limit>1000|| !expires){
+  toast("Vérifiez le nom du lot, la remise, le quota et les dates");return;
+ }
+ const existing=new Set(discounts.map(d=>d.code.toUpperCase()));
+ const entries=[];
+ const batchId="LOT-"+Date.now().toString(36).toUpperCase();
+ for(let i=0;i<qty;i++){
+  let code,tries=0;
+  do{code=(prefix?prefix+"-":"")+randomPromo(10);tries++}while(existing.has(code)&&tries<100);
+  if(existing.has(code)){toast("Impossible de garantir l'unicité");return}
+  existing.add(code);
+  entries.push({id:discountCounter+i,code,type,value,minimum,limit,uses:0,enabled,expires,est,scope,batchId,batchName:name});
+ }
+ discountCounter+=qty;discounts.push(...entries);
+ promoBatches.push({id:batchId,name,count:qty,created:new Date().toISOString().slice(0,10)});
+ persistPromoBatches();promoBatchFilter=batchId;
+ closeModal();render();toast(qty+" codes uniques générés dans "+name);
+}
+const originalDiscountsViewV15=discountsView;
+discountsView=function(){
+ const base=originalDiscountsViewV15();
+ const controls='<div class="discount-batch-controls">'+
+ '<button class="btn primary" onclick="openPromoBatch()">＋ Générer des codes uniques en lot</button>'+
+ '<label>Lot : <select onchange="promoBatchFilter=this.value;render()"><option value="Tous">Tous les codes</option>'+
+ promoBatches.map(b=>'<option value="'+esc(b.id)+'" '+(promoBatchFilter===b.id?'selected':'')+'>'+esc(b.name)+' ('+b.count+')</option>').join("")+
+ '</select></label><button class="btn" onclick="exportPromoCSV()">↓ Export CSV</button>'+
+ '<span class="sub">'+promoBatches.length+' lot(s) généré(s)</span></div>';
+ if(promoBatchFilter==="Tous")return controls+base;
+ const chosen=discounts.filter(d=>d.batchId===promoBatchFilter);
+ const start=base.indexOf("<tbody>"),end=base.indexOf("</tbody>",start);
+ if(start<0||end<0)return controls+base;
+ const rows=chosen.map(d=>'<tr><td><b>'+esc(d.code)+'</b></td><td>'+(d.type==="percent"?d.value+" %":money(d.value))+'</td>'+
+ '<td>'+money(d.minimum)+'</td><td>'+esc(d.scope)+'</td><td>'+esc(d.est)+'</td><td>'+d.uses+' / '+d.limit+'</td>'+
+ '<td>'+esc(d.expires)+'</td><td><span class="pill '+(d.enabled?'ok':'red')+'">'+(d.enabled?'Actif':'Inactif')+'</span></td>'+
+ '<td><button class="link" onclick="discountModal('+d.id+')">Modifier</button> · <button class="link" onclick="toggleDiscount('+d.id+')">'+(d.enabled?'Désactiver':'Activer')+'</button></td></tr>').join("");
+ return controls+base.slice(0,start+6)+rows+base.slice(end);
+};
+function exportPromoCSV(){
+ const data=discounts.filter(d=>promoBatchFilter==="Tous"||d.batchId===promoBatchFilter);
+ if(!data.length){toast("Aucun code à exporter");return}
+ const headings=["Lot","Code","Type","Valeur","Minimum","Quota","Utilisations","Expiration","Établissement","Catégorie","Actif"];
+ const q=s=>'"'+String(s??"").replace(/"/g,'""').replace(/^[=+\-@\t\r]/,"'</body></html>")+'"';
+ const csv=[headings.join(";"),...data.map(d=>[d.batchName||"",d.code,d.type,d.value,d.minimum,d.limit||"Illimité",d.uses,d.expires,d.est,d.scope,d.enabled?"Oui":"Non"].map(q).join(";"))].join("\r\n");
+ const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));
+ const a=document.createElement("a");a.href=url;a.download="cse_codes_"+(promoBatchFilter==="Tous"?"tous":promoBatchFilter)+".csv";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+const originalSaveDiscountV15=saveDiscount;
+saveDiscount=function(id){originalSaveDiscountV15(id);persistPromoBatches()};
+const originalToggleDiscountV15=toggleDiscount;
+toggleDiscount=function(id){originalToggleDiscountV15(id);persistPromoBatches()};
 </script></body></html>
