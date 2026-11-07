@@ -20,6 +20,9 @@ class RosterError extends Error {
 }
 
 function analyzeCsv(csv) {
+  if(typeof csv==="string" && csv.includes("\uFFFD")){
+    throw new RosterError("Caracteres illisibles : exportez le fichier au format CSV UTF-8.");
+  }
   let parsed;
   try { parsed = parseEligibilityCsv(csv); }
   catch (error) { throw new RosterError(error.message); }
