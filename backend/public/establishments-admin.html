@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gestion privée des établissements · CSE Éducatif</title>
+  <link rel="stylesheet" href="/admin.css">
+  <script defer src="/admin.js"></script>
+</head>
+<body>
+  <header><div class="wrap"><span class="brand">CSE Éducatif</span> <span class="muted">Administration privée des établissements</span></div></header>
+  <main class="wrap">
+    <h1>Gérer les établissements</h1>
+    <p class="warning"><strong>Accès provisoire par tunnel SSH.</strong> Ce panneau n'est pas le futur compte superadministrateur du site. Ne l'exposez jamais sur Internet.</p>
+    <section class="box" id="login">
+      <h2>Déverrouiller la liste</h2>
+      <p>Collez le jeton du panneau depuis votre terminal privé du VPS. Ne le communiquez à personne.</p>
+      <div class="inline">
+        <label for="token">Jeton d'administration</label>
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Jeton à 64 caractères">
+        <button id="connect" type="button">Accéder</button>
+      </div>
+    </section>
+    <section id="workspace" hidden>
+      <div class="topline">
+        <div><h2>Établissements enregistrés</h2><p class="muted">Le code ne peut pas être modifié après création. Désactivez un établissement pour le retirer du menu d'inscription sans perdre l'historique.</p></div>
+        <button id="reload" type="button" class="secondary">Actualiser</button>
+      </div>
+      <div class="box table-scroll">
+        <table>
+          <thead><tr><th>Code</th><th>Nom affiché dans le menu</th><th>Ordre</th><th>Actif</th></tr></thead>
+          <tbody id="sites"></tbody>
+        </table>
+      </div>
+      <div class="box">
+        <h2>Ajouter un ou plusieurs établissements</h2>
+        <p class="muted">Une ligne par établissement au format <code>code;nom;ordre</code>. L'ordre est facultatif. Exemple fictif : <code>10;NOUVEAU SITE;10</code>.</p>
+        <label for="newSites">Nouveaux établissements</label>
+        <textarea id="newSites" rows="4" spellcheck="false" placeholder="10;NOUVEAU SITE;10&#10;11;AUTRE SITE;11"></textarea>
+      </div>
+      <div class="actions">
+        <button id="save" type="button">Enregistrer les modifications</button>
+        <button id="lock" type="button" class="secondary">Verrouiller</button>
+      </div>
+    </section>
+    <p id="message" role="status" aria-live="polite"></p>
+  </main>
+</body>
+</html>
