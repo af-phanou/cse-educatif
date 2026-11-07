@@ -59,6 +59,20 @@ async function main() {
     if (role.rows[0].name!=="cse_registration_reviewer") {
       throw new Error("Role de validation non applique.");
     }
+    // Le role ne doit pouvoir que preparer une notification :
+    // jamais lire la liste ni changer le statut d'envoi.
+    const access=await db.query([
+      "SELECT",
+      "has_column_privilege(current_user,'cse.email_outbox','template','INSERT') AS can_prepare,",
+      "has_table_privilege(current_user,'cse.email_outbox','SELECT') AS can_read,",
+      "has_table_privilege(current_user,'cse.email_outbox','UPDATE') AS can_send_or_modify,",
+      "has_table_privilege(current_user,'cse.email_outbox','DELETE') AS can_delete"
+    ].join("\n"));
+    const rights=access.rows[0];
+    if (!rights.can_prepare || rights.can_read ||
+        rights.can_send_or_modify || rights.can_delete) {
+      throw new Error("Permissions des notifications non conformes.");
+    }
     for (const {id,decision} of ids) {
       const result=await decideRequestInTransaction(db,id,decision);
       if (result.status!=="recorded" || result.decision!==decision ||
@@ -121,6 +135,7 @@ async function main() {
       rejectedDecision:"recorded",
       duplicateDecisionsPrevented:true,
       outboxEntriesCreated:2,
+      restrictedOutboxPrivileges:true,
       deliveryStatus:"not_configured",
       recipientAddressesStored:false,
       auditEntriesCreated:2,
