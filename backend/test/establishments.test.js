@@ -59,6 +59,7 @@ test("liste deroulante uniquement active, ordonnee par nom de code", async () =>
 test("ecriture refusee sans provenance admin verifiee", async () => {
   const db = {query:async () => {throw new Error("ne doit pas executer de SQL");}};
   await assert.rejects(() => upsertEstablishments(db, [{code:"11",name:"SITE"}], "http_public"));
+  await assert.rejects(() => upsertEstablishments(db, [{code:"11",name:"SITE"}], "authenticated_superadmin"));
 });
 
 test("ajout de plusieurs etablissements : transaction + audit", async () => {
