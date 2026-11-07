@@ -55,3 +55,9 @@ Dans **Administration → Catalogue** : créer d'abord les catégories, puis ouv
 Le catalogue est enregistré dans `cse_fusion_v18_catalogue`, avec un export aplati compatible avec la maquette historique via `cse_fusion_v9_catalogue`. Les images sont redimensionnées localement avant enregistrement. Le stockage reste limité au navigateur et **ne constitue ni un hébergement d'images ni une base partagée de production**. La maquette doit être testée dans le navigateur ; aucune commande ou facture réelle n'est générée.
 
 Fichiers : `catalogue-v18.js` (données communes), `catalogue-admin-v18.js` (édition), `catalogue-public-v18.js` (boutique), `catalogue-v18.css` (présentation).
+
+## Correction « Nos offres à la une » — V19
+
+Dans **Administration → Pages du site → Accueil**, sélectionnez le bloc **Produits mis en avant**. Le panneau de droite propose désormais la liste des véritables produits du catalogue V18 avec une case à cocher pour chacun (maximum 8). L'aperçu du bloc affiche leurs images, catégories, prix publics barrés et tarifs CSE. Le bloc et la page publique reprennent les produits cochés, dans la limite du nombre choisi (2, 4, 6 ou 8) et en deux colonnes sur ordinateur.
+
+Les choix sont enregistrés immédiatement dans le catalogue local. Cliquez également sur « Enregistrer la page » pour enregistrer les blocs du CMS. Si aucun produit n'est coché, une consigne explicite apparaît à la place d'un bloc vide.
