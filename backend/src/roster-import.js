@@ -170,7 +170,7 @@ async function listImports(db) {
   const result=await db.query([
     "SELECT id, file_sha256, status, rows_count, created_at, activated_at",
     "FROM cse.roster_imports",
-    "ORDER BY created_at DESC, id DESC",
+    "ORDER BY (status = 'active') DESC, created_at DESC, id DESC",
     "LIMIT 40"
   ].join("\n"));
   return result.rows.map(row=>({
