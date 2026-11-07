@@ -343,4 +343,117 @@ const origMoveBlock=cmsMoveBlock;
 cmsMoveBlock=function(i,d){origMoveBlock(i,d);sharePages()};
 const originalDropBlock=cmsDrop;
 cmsDrop=function(e,i){originalDropBlock(e,i);sharePages()};
+</script>
+<style>
+.bulk-orders-panel{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:white;border:1px solid #dce6f3;border-radius:14px;padding:14px 17px;margin-bottom:14px}
+.bulk-orders-panel .bulk-main{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.bulk-orders-panel label{display:flex;gap:9px;align-items:center;font-weight:700}
+.bulk-orders-panel input[type=checkbox],.orders-bulk-cell input{width:17px;height:17px;accent-color:#1278cc;cursor:pointer}
+.bulk-orders-panel .bulk-warning{color:#956200;font-size:12px}
+.bulk-orders-panel .bulk-state{font-size:12px;line-height:1.6}
+.orders-bulk-cell{width:45px;text-align:center}
+.bulk-orders-help{font-size:12px;color:#61758d;margin:7px 0 0}
+.bulk-orders-panel .active-auto{background:#fff2d8;border:1px solid #edce85;border-radius:10px;padding:8px 12px}
+</style>
+<script>
+/* V13 — Commandes : sélection groupée et validation automatique conditionnée au paiement.
+   Prototype local uniquement : aucun serveur, paiement ou email réel. */
+const AUTO_ORDER_KEY="cse_fusion_v13_auto_paid";
+let autoPaidOrders=false;
+try { autoPaidOrders=localStorage.getItem(AUTO_ORDER_KEY)==="true"; } catch(e) {}
+let selectedBulkOrders=new Set();
+let bulkAutomationBusy=false;
+const originalOrdersViewV13=ordersView;
+const originalTogglePaidV13=togglePaid;
+const originalValidateOrderV13=validateOrder;
+function ordersBulkCandidates(){
+  return orders.filter(o=>o.paid===true && o.status!=="Validée" && o.emailSent!==true);
+}
+function validateBatchOrders(ids, automated){
+  let success=0, skipped=0, blocked=0;
+  const initial=ids.slice();
+  // Validate only orders with confirmed/simulated full payment.
+  for(const id of initial){
+    let o=orders.find(x=>x.id===id);
+    if(!o || o.status==="Validée" || o.emailSent===true){skipped++;continue}
+    if(o.paid!==true){blocked++;continue}
+    // Respect the business rule for multiple overdue unpaid orders, when known in the demo.
+    const overdue=orders.filter(x=>x.emp===o.emp && x.id!==o.id && x.paid!==true && x.status==="Impayée +30j");
+    if(overdue.length>1){blocked++;continue}
+    originalValidateOrderV13(id);
+    if(o.status==="Validée"){success++;selectedBulkOrders.delete(id)}else{blocked++}
+  }
+  return {success,skipped,blocked};
+}
+function confirmSelectedOrders(){
+  const ids=[...selectedBulkOrders];
+  if(ids.length===0){toast("Sélectionnez au moins une commande");return}
+  const candidates=ids.filter(id=>orders.some(o=>o.id===id && o.paid===true && o.status!=="Validée"));
+  const excluded=ids.length-candidates.length;
+  if(candidates.length===0){toast("Aucune commande payée et à valider dans la sélection");return}
+  if(!confirm("Valider "+candidates.length+" commande(s) payée(s) ?\n"+excluded+" commande(s) non éligible(s) seront ignorée(s).\n\nLes emails et billets sont uniquement simulés."))return;
+  const r=validateBatchOrders(candidates,false);
+  render();
+  toast(r.success+" commande(s) validée(s). "+(r.blocked+r.skipped+excluded)+" ignorée(s) ou bloquée(s).");
+}
+function updateBulkSelection(id,on){
+  if(on)selectedBulkOrders.add(id);else selectedBulkOrders.delete(id);
+  const count=document.getElementById("bulkCount");
+  if(count)count.textContent=selectedBulkOrders.size;
+}
+function selectAllVisibleOrders(on){
+  document.querySelectorAll("[data-bulk-order]").forEach(el=>{el.checked=on;updateBulkSelection(el.dataset.bulkOrder,on)});
+}
+function toggleAutomaticPaidOrders(enabled){
+  if(enabled){
+    if(!confirm("Activer la validation automatique des commandes entièrement payées ?\n\nLes commandes non payées, déjà validées ou bloquées par une règle métier resteront en attente.\n\nCeci est une simulation locale : elle ne fonctionne pas lorsque l'application est fermée.")){
+      render();return;
+    }
+  }
+  autoPaidOrders=enabled;
+  try{localStorage.setItem(AUTO_ORDER_KEY,String(enabled))}catch(e){}
+  if(enabled){
+    const result=processEligiblePaidOrders();
+    render();
+    toast("Mode automatique activé. "+result.success+" commande(s) simulée(s) validée(s).");
+  }else{
+    render();toast("Validation automatique désactivée");
+  }
+}
+function processEligiblePaidOrders(){
+  if(!autoPaidOrders || bulkAutomationBusy)return {success:0,blocked:0,skipped:0};
+  bulkAutomationBusy=true;
+  try{return validateBatchOrders(ordersBulkCandidates().map(o=>o.id),true)}
+  finally{bulkAutomationBusy=false}
+}
+togglePaid=function(id){
+  originalTogglePaidV13(id);
+  if(autoPaidOrders){
+    const o=orders.find(o=>o.id===id);
+    if(o?.paid===true){
+      let r=processEligiblePaidOrders();
+      if(r.success){closeModal();render();toast("Commande payée validée automatiquement (simulation)")}
+    }
+  }
+};
+ordersView=function(){
+  // When reopened, process any new fully paid order waiting locally, if enabled.
+  if(autoPaidOrders&&!bulkAutomationBusy)processEligiblePaidOrders();
+  const validIds=new Set(orders.filter(o=>o.status!=="Validée").map(o=>o.id));
+  for(const id of selectedBulkOrders)if(!validIds.has(id))selectedBulkOrders.delete(id);
+  const initial=originalOrdersViewV13();
+  const panel='<div class="bulk-orders-panel"><div class="bulk-main">'+
+    '<label><input type="checkbox" onchange="selectAllVisibleOrders(this.checked)"> Tout sélectionner (résultats affichés)</label>'+
+    '<button class="btn primary" onclick="confirmSelectedOrders()">✓ Valider les commandes sélectionnées (<span id="bulkCount">'+selectedBulkOrders.size+'</span>)</button>'+
+    '</div><div class="'+(autoPaidOrders?'active-auto':'')+'"><label><input type="checkbox" '+(autoPaidOrders?'checked':'')+' onchange="toggleAutomaticPaidOrders(this.checked)"> Validation automatique des commandes payées</label>'+
+    '<div class="bulk-state">'+(autoPaidOrders?'🟢 Activée — commandes entièrement payées uniquement':'Désactivée — validation manuelle')+'</div></div>'+
+    '<div class="bulk-orders-help">Les commandes non payées ou déjà validées ne sont pas validées en lot. Les règles de blocage et de disponibilité des billets restent applicables. Le mode automatique est local à la maquette.</div></div>';
+  return panel+initial
+    .replace("<th>Commande</th>","<th class=\"orders-bulk-cell\">☑</th><th>Commande</th>")
+    .replace(/<tr><td><b>(CMD-[\w-]+)<\/b>/g,(full,id)=>{
+      const o=orders.find(x=>x.id===id),checked=selectedBulkOrders.has(id);
+      return '<tr><td class="orders-bulk-cell"><input type="checkbox" data-bulk-order="'+esc(id)+'" '+(checked?'checked':'')+' '+(o?.status==="Validée"?'disabled':'')+' onchange="updateBulkSelection(this.dataset.bulkOrder,this.checked)"></td><td><b>'+esc(id)+'</b>';
+    })
+    .replace('colspan="7"','colspan="8"');
+};
 </script></body></html>
