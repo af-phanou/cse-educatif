@@ -216,4 +216,5 @@ window.addEventListener("cse:v28-orders",()=>{
  if(typeof route!=="undefined"&&(route==="orders"||route==="tickets"))render();
 });
 window.addEventListener("cse:v28-mapping",()=>{if(typeof route!=="undefined"&&route==="tickets")render()});
+if(typeof route!=="undefined"&&(route==="tickets"||route==="orders")&&typeof render==="function")render();
 })();
