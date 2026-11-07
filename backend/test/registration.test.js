@@ -54,8 +54,9 @@ test("recherche dans le lot CSV actif par SQL parametre", async () => {
     called = true;
     assert.equal(sql, LOOKUP_ACTIVE_ROSTER_SQL);
     assert.match(sql, /status = 'active'/);
-    assert.match(sql, /match_key = \$1/);
-    assert.deepEqual(params, ["L ECUYER|ELISE|0012"]);
+    assert.match(sql, /match_key = \$2/);
+    assert.match(sql, /est\.code = \$1 AND est\.active = true/);
+    assert.deepEqual(params, ["0012", "L ECUYER|ELISE|0012"]);
     assert.equal(sql.includes("L'Écuyer"), false);
   }), demo());
   assert.equal(called, true);
@@ -70,7 +71,7 @@ test("correspondance unique : eligible provisoire, compte toujours non cree", as
 });
 
 test("aucun lot CSV actif : validation manuelle", async () => {
-  const result = await prepareRegistration(dbWithRows([]), demo());
+  const result = await prepareRegistration(dbWithRows([{ import_id: null, entry_id: null }]), demo());
   assert.equal(result.internalStatus, "manual_review");
   assert.equal(result.reviewReason, "no_active_roster");
 });
@@ -99,4 +100,12 @@ test("reponse publique identique quelle que soit l'eligibilite", async () => {
   ]);
   assert.deepEqual([...new Set(outputs.map(x => x.publicStatus))], ["verification_pending"]);
   assert.ok(outputs.every(x => x.emailSent === false && x.persisted === false));
+});
+
+
+test("etablissement inconnu ou desactive : pas d'eligibilite provisoire", async () => {
+  const result = await prepareRegistration(dbWithRows([]), demo());
+  assert.equal(result.internalStatus, "manual_review");
+  assert.equal(result.reviewReason, "establishment_unavailable");
+  assert.equal(result.matchedRosterEntryId, null);
 });
