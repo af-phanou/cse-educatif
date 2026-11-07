@@ -61,3 +61,13 @@ Fichiers : `catalogue-v18.js` (données communes), `catalogue-admin-v18.js` (éd
 Dans **Administration → Pages du site → Accueil**, sélectionnez le bloc **Produits mis en avant**. Le panneau de droite propose désormais la liste des véritables produits du catalogue V18 avec une case à cocher pour chacun (maximum 8). L'aperçu du bloc affiche leurs images, catégories, prix publics barrés et tarifs CSE. Le bloc et la page publique reprennent les produits cochés, dans la limite du nombre choisi (2, 4, 6 ou 8) et en deux colonnes sur ordinateur.
 
 Les choix sont enregistrés immédiatement dans le catalogue local. Cliquez également sur « Enregistrer la page » pour enregistrer les blocs du CMS. Si aucun produit n'est coché, une consigne explicite apparaît à la place d'un bloc vide.
+
+## Thèmes saisonniers du site public — V20
+
+Dans **Administration → Pages du site**, un panneau « Thème du site public » permet de sélectionner **un seul thème à la fois** parmi : Aucun thème, Noël, Halloween, Printemps, Été, Automne, Hiver et Saint-Valentin.
+
+Chaque choix dispose d'un aperçu et d'une option **Activer les petites animations décoratives** : flocons, citrouilles, pétales, soleil, feuilles ou cœurs selon la saison. Les animations sont décoratives (ne bloquent jamais les clics), réduites sur mobile et complètement désactivées si le système de l'utilisateur demande une **réduction des mouvements**.
+
+Après choix, cliquer sur **Appliquer au site public**. Le paramètre est enregistré sous `cse_fusion_v20_seasonal_theme` dans le stockage local du navigateur et récupéré par le site public via les deux fichiers `seasonal-themes-v20.js` et `seasonal-public-v20.js`. Le panneau admin se trouve dans `seasonal-admin-v20.js`. Le style est dans `seasonal-themes-v20.css`.
+
+**Limites :** ce réglage concerne la maquette locale et n'est pas encore synchronisé entre les différents ordinateurs, ni automatiquement activé selon le calendrier. Le bleu et blanc du logo restent inchangés.
