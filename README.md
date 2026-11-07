@@ -33,3 +33,9 @@ Bleu `#1278CC`, bleu marine `#0F2660`, blanc, conformément aux orientations val
 Dans **Administration → Commandes** : sélection des commandes via cases à cocher, validation groupée après confirmation, et interrupteur « Validation automatique des commandes payées ». Les commandes non payées et déjà validées ne sont pas éligibles à la validation groupée. Les commandes avec plus d'une facture échue non réglée restent bloquées, et les billets doivent être disponibles pour leur attribution.
 
 **Attention** : l'automatisation est une **simulation JavaScript locale**. Elle fonctionne uniquement pendant l'utilisation de la maquette, y compris lors de l'ouverture de la page Commandes ou d'une modification de paiement locale ; elle **ne fonctionne pas en arrière-plan pendant les congés**. Pour le site définitif, ce mode nécessitera un service côté serveur et une confirmation fiable du paiement (webhook / rapprochement), avec traçabilité, envois réels et contrôle des stocks.
+
+## Code PIN du mode automatique — V14
+
+Le changement d'état de la case **Validation automatique des commandes payées** (activation et désactivation) demande un **code PIN de 4 chiffres**. Pour la maquette uniquement, le code est **2027**. Un code incorrect ou une annulation laisse le mode inchangé.
+
+**Ce PIN est visible dans le code JavaScript et ne sécurise pas une vraie application.** En production, contrôle côté serveur réservé au superadministrateur, hachage du secret, limitation des tentatives et journal d'audit sont nécessaires. Cette maquette n'effectue aucune validation de commande en arrière-plan.
