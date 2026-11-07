@@ -169,6 +169,30 @@ services:
       timeout: 5s
       retries: 3
 
+  # Test facultatif : un SEUL mail vers contact@... puis arret.
+  # Le profil desactive son execution lors de docker compose up -d.
+  # Aucune connexion PostgreSQL ou port entrant.
+  mailer_test:
+    profiles:
+      - manual-mail-test
+    build:
+      context: ./app/maquette/backend
+    command: ["node", "src/send-email-selftest.js"]
+    restart: "no"
+    environment:
+      SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+    secrets:
+      - smtp_password
+    networks:
+      - cse_panel_bridge
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
 secrets:
   app_db_password:
     file: ./secrets/app_db_password
@@ -186,6 +210,9 @@ secrets:
     file: ./secrets/roster_panel_token
   email_verifier_db_password:
     file: ./secrets/email_verifier_db_password
+
+  smtp_password:
+    file: ./secrets/smtp_password
 
 networks:
   cse_panel_bridge:
