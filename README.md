@@ -96,3 +96,18 @@ Les fonds, le bandeau d'accueil, les boutons, la navigation et les cartes produi
 Fichiers : `seasonal-premium-v24.css` et `seasonal-premium-v24.js`. Le sélecteur dans **Administration → Thèmes du site** conserve son fonctionnement : choisir le thème puis **Appliquer au site public**. Désactiver les animations avec la case du panneau. Les préférences système de réduction des mouvements sont respectées ; les éléments décoratifs ne capturent pas les clics.
 
 **Limites** : la V24 est une maquette HTML avec stockage de thème dans le navigateur. La syntaxe JavaScript a été vérifiée, mais la recette visuelle et responsive exhaustive sur navigateur reste à effectuer.
+
+## Refonte de la boutique et des fiches produits — V25
+
+Le site public et l'espace salarié disposent d'une présentation de boutique entièrement renouvelée :
+
+- En-tête de boutique, catégories à gauche, recherche par produit, enseigne ou déclinaison, tri par nom ou prix.
+- Cartes produits modernes avec grande image, catégorie, présentation, choix de la déclinaison, **prix public barré**, tarif CSE, taux de remise, disponibilité et signalement du délai fournisseur prolongé.
+- Bouton **Voir la fiche** ouvrant une véritable fiche produit détaillée, avec photo/illustration, description, liste déroulante des déclinaisons, prix, économie, stock, quantité et ajout au panier.
+- Blocs « Nos offres à la une » actualisés dans la présentation du site, en conservant la limite de huit produits sur deux colonnes.
+- Photos issues directement du champ image dans l'administration du catalogue V18. Si aucune photo n'a été ajoutée, une **illustration générique clairement présentée comme telle** est utilisée pour la maquette.
+- Responsive sur ordinateur, tablette et téléphone ; compatibilité avec les habillages Noël et Halloween V24.
+
+Fichiers : `boutique-v25.css` et `boutique-v25.js`, chargés par `CSE_Educatif_Site_Espace_Salarie_Fusion_V9.html`. La navigation entre site public, salarié et administration est conservée via `index.html`.
+
+**Tests** : syntaxe JavaScript vérifiée. Un test de fonctionnement ciblé a confirmé le rendu du catalogue et de la fiche produit, le changement de déclinaison, la quantité ajoutée au panier et le filtrage. L'ensemble des parcours visuels et responsive n'a pas encore fait l'objet d'une recette complète. Les commandes et règlements restent simulés localement.
