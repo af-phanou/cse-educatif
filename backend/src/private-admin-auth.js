@@ -37,11 +37,23 @@ function isAllowedReviewOrigin(origin) {
     "http://localhost:18089", "http://127.0.0.1:18089"].includes(origin);
 }
 
+// Panneau CSV : uniquement ports loopback et origine locale du tunnel.
+function isAllowedRosterHost(host) {
+  return ["localhost:8090","127.0.0.1:8090",
+    "localhost:18090","127.0.0.1:18090"].includes(host);
+}
+function isAllowedRosterOrigin(origin) {
+  return ["http://localhost:8090","http://127.0.0.1:8090",
+    "http://localhost:18090","http://127.0.0.1:18090"].includes(origin);
+}
+
 module.exports = {
   isValidPanelToken,
   isAllowedLocalHost,
   isAllowedMutationOrigin,
   requestPath,
   isAllowedReviewHost,
-  isAllowedReviewOrigin
+  isAllowedReviewOrigin,
+  isAllowedRosterHost,
+  isAllowedRosterOrigin
 };
