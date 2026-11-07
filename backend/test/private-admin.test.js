@@ -25,6 +25,8 @@ test("refuse jetons incomplets, non-hexadecimaux ou absents", () => {
 test("refuse les domaines externes (anti DNS rebinding)", () => {
   assert.equal(isAllowedLocalHost("localhost:8088"), true);
   assert.equal(isAllowedLocalHost("127.0.0.1:8088"), true);
+  assert.equal(isAllowedLocalHost("localhost:18088"), true);
+  assert.equal(isAllowedLocalHost("127.0.0.1:18088"), true);
   assert.equal(isAllowedLocalHost("cse-educatif-rxtg.fr"), false);
   assert.equal(isAllowedLocalHost("evil.example:8088"), false);
 });
@@ -32,6 +34,8 @@ test("refuse les domaines externes (anti DNS rebinding)", () => {
 test("autorise les modifications uniquement depuis le panneau localhost", () => {
   assert.equal(isAllowedMutationOrigin("http://localhost:8088"), true);
   assert.equal(isAllowedMutationOrigin("http://127.0.0.1:8088"), true);
+  assert.equal(isAllowedMutationOrigin("http://localhost:18088"), true);
+  assert.equal(isAllowedMutationOrigin("http://127.0.0.1:18088"), true);
   assert.equal(isAllowedMutationOrigin("https://cse-educatif-rxtg.fr"), false);
   assert.equal(isAllowedMutationOrigin(null), false);
 });
