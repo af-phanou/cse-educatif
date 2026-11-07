@@ -66,3 +66,36 @@ Ne jamais publier un port 5432 ou 3000 ; le backend et PostgreSQL utilisent
 le réseau `cse_private`. Le dossier `secrets/` est hors du dépôt
 GitHub, en permissions restrictives. Ne jamais coller un secret dans un ticket
 GitHub, un message ou une commande visible dans les historiques de shell.
+
+
+## Controle d'eligibilite CSV (module en preparation)
+
+Le module `src/eligibility.js` analyse un CSV (separateur point-virgule,
+virgule ou tabulation) et ne conserve que **nom, prenom et numero
+d'etablissement**. Les autres colonnes sont ignorees.
+
+- Une seule correspondance dans le lot actif pourra ouvrir le parcours
+  d'inscription, sans activer automatiquement le compte.
+- Une absence ou plusieurs correspondances (homonymes) imposent une
+  **validation manuelle**.
+- Le numero d'etablissement conserve ses zeros initiaux.
+- Le resultat d'une verification est une information interne ; ne jamais
+  exposer au candidat un message permettant de deduire la presence d'un
+  autre salarie dans le fichier.
+- Il n'existe **aucun endpoint public** d'inscription ou d'import a ce stade.
+
+**Test sans donnees reelles** (sur le VPS, apres `git pull`) :
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api node --test test/eligibility.test.js
+```
+
+Pour tester uniquement la lecture d'un exemple fictif, sans insertion SQL :
+```bash
+printf 'nom;prenom;numero_etablissement\nEXEMPLE;Alice;0001\n' | sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm -T --no-deps api node src/check-roster.js --preview -
+```
+
+Cette verification **n'importe ni ne stocke** le fichier et ne cree
+aucun compte. L'import mensuel et la creation d'un compte seront raccordes
+au backend uniquement apres l'ajout de l'authentification administrateur,
+de la revue manuelle, des emails et des protections RGPD.
