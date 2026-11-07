@@ -155,8 +155,11 @@ async function exportEmail(id){
   const subject="CSE Éducatif — Vos billets • commande "+id;
   const chosenTemplate=Number(document.getElementById("v28tpl-"+id)?.value||0);
   const template=mailTemplates[chosenTemplate]||mailTemplates[0];
-  const message=template.replaceAll("{prenom}",order.employee.first).replaceAll("{commande}",id)+
-   "\n\nLes billets PDF et leurs QR codes sont joints à ce message.\n\nBien cordialement,\nLe CSE Éducatif";
+  const intro=template.replaceAll("{prenom}",order.employee.first).replaceAll("{commande}",id)
+    .replace(/votre facture et vos billets en pièces jointes/gi,"vos billets en pièces jointes");
+  const message=intro+"\n\nLes billets PDF et leurs QR codes sont joints à ce message."+
+   "\nLes éventuelles factures sont à consulter dans l'espace salarié du CSE."+
+   "\n\nBien cordialement,\nLe CSE Éducatif";
   const head="MIME-Version: 1.0\r\nTo: "+escapeHeader(order.employee.email)+
    "\r\nSubject: =?UTF-8?B?"+b64text(subject)+"?=\r\n"+
    'Content-Type: multipart/mixed; boundary="'+boundary+'"\r\n\r\n';
