@@ -4,7 +4,8 @@ const assert = require("node:assert/strict");
 const {
   isValidPanelToken,
   isAllowedLocalHost,
-  isAllowedMutationOrigin
+  isAllowedMutationOrigin,
+  requestPath
 } = require("../src/private-admin-auth");
 
 const token = "a".repeat(64);
@@ -44,4 +45,13 @@ test("une route Web arbitraire ne peut pas etre consideree comme autorisee", () 
   const { upsertEstablishments } = require("../src/establishments");
   const db = { query: async () => { throw new Error("Ne pas executer de SQL"); } };
   return assert.rejects(() => upsertEstablishments(db, [{code:"10",name:"TEST"}], "public_http"));
+});
+
+
+test("ignore les parametres de suivi sans modifier le chemin autorise", () => {
+  assert.equal(requestPath("/?utm_source=chatgpt.com"), "/");
+  assert.equal(requestPath("/admin.js?version=1"), "/admin.js");
+  assert.equal(requestPath("/api/sites?test=1"), "/api/sites");
+  assert.equal(requestPath("/autre?utm_source=chatgpt.com"), "/autre");
+  assert.equal(requestPath("https://evil.example/"), "");
 });
