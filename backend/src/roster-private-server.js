@@ -142,8 +142,8 @@ const server=http.createServer(async(req,res)=>{
     if(activate){
       if(body.confirm!==true)return send(res,400,{error:"confirmation_required"});
       const result=await activateImport(pool,target[1]);
-      if(result.status==="not_staged"){
-        return send(res,409,{error:"not_staged"});
+      if(result.status==="not_activatable"){
+        return send(res,409,{error:"not_activatable"});
       }
       return send(res,200,result);
     }
