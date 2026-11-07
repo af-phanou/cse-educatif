@@ -653,4 +653,117 @@ const originalSaveDiscountV15=saveDiscount;
 saveDiscount=function(id){originalSaveDiscountV15(id);persistPromoBatches()};
 const originalToggleDiscountV15=toggleDiscount;
 toggleDiscount=function(id){originalToggleDiscountV15(id);persistPromoBatches()};
+</script>
+<style>
+.discount-usage-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.discount-usage-toolbar input,.discount-usage-toolbar select{border:1px solid #cbd9e8;border-radius:8px;padding:10px;min-width:150px}
+.discount-usage-toolbar input{flex:2}
+.discount-usage-status{font-size:11px;border-radius:15px;padding:4px 8px;background:#e8f3ff;color:#0f2660}
+.discount-usage-status.confirmed{background:#e3f6ef;color:#136748}
+</style>
+<script>
+/* V16 : suivi des bénéficiaires des réductions, par code / commande / salarié.
+   Ces informations sont des données de démonstration locales, non des historiques réels. */
+const PROMO_USAGE_KEY="cse_fusion_v16_discount_usage";
+let promoUsage=[];
+let promoUsageSearch="";
+let promoUsageStatus="Tous";
+try{
+ let stored=JSON.parse(localStorage.getItem(PROMO_USAGE_KEY));
+ if(Array.isArray(stored))promoUsage=stored.filter(x=>x&&typeof x.code==="string");
+}catch(e){}
+function savePromoUsage(){
+ try{localStorage.setItem(PROMO_USAGE_KEY,JSON.stringify(promoUsage))}catch(e){toast("Stockage local du suivi indisponible")}
+}
+function promoUsageStatusFor(order){
+ return order&&order.status==="Validée"?"Validée":"Appliquée";
+}
+function upsertPromoUsage(order,code,amount){
+ if(!order||!code)return;
+ const employee=E(order.emp);
+ let record=promoUsage.find(x=>x.orderId===order.id);
+ if(!record){
+  record={id:"USG-"+Date.now()+"-"+Math.floor(Math.random()*1e5),orderId:order.id};
+  promoUsage.push(record);
+ }
+ Object.assign(record,{
+  code:code.toUpperCase(),
+  employeeId:order.emp,
+  employeeName:employee?employee.first+" "+employee.last:"Salarié inconnu",
+  establishment:employee?employee.est:"Non renseigné",
+  date:new Date().toISOString().slice(0,10),
+  amount:Number(amount)||0,
+  status:promoUsageStatusFor(order),
+  invoice:"F-2027-"+order.id.slice(-3)
+ });
+ savePromoUsage();
+}
+function markPromoUsageConfirmed(id){
+ const o=orders.find(x=>x.id===id);
+ if(!o||o.status!=="Validée")return;
+ for(const u of promoUsage){
+  if(u.orderId===id)u.status="Validée";
+ }
+ savePromoUsage();
+}
+const originalApplyDiscountV16=applyDiscount;
+applyDiscount=function(id){
+ const before=discountApplied[id]?.code;
+ originalApplyDiscountV16(id);
+ const o=orders.find(x=>x.id===id);
+ const after=discountApplied[id];
+ if(o && after && after.code!==before)upsertPromoUsage(o,after.code,after.amount);
+};
+const originalValidateOrderV16=validateOrder;
+validateOrder=function(id){
+ originalValidateOrderV16(id);
+ markPromoUsageConfirmed(id);
+};
+function matchingPromoUsage(){
+ const q=promoUsageSearch.trim().toLocaleLowerCase("fr");
+ return promoUsage.filter(x=>
+  (promoBatchFilter==="Tous"||discounts.some(d=>d.batchId===promoBatchFilter&&d.code===x.code))&&
+  (promoUsageStatus==="Tous"||x.status===promoUsageStatus)&&
+  (!q||[x.code,x.employeeName,x.establishment,x.orderId,x.invoice].join(" ").toLocaleLowerCase("fr").includes(q))
+ );
+}
+function promoUsageHTML(){
+ const rows=matchingPromoUsage();
+ return '<section class="panel"><div class="row" style="justify-content:space-between;align-items:center"><h3>Suivi des utilisations des codes</h3>'+
+ '<button class="btn" onclick="exportPromoUsageCSV()">↓ Export suivi CSV</button></div>'+
+ '<p class="small muted">Un code appliqué à une commande reste « Appliqué » jusqu’à la validation de la commande. Les compteurs antérieurs à cette version ne disposent pas forcément d’un bénéficiaire identifié.</p>'+
+ '<div class="discount-usage-toolbar">'+
+ '<input type="search" placeholder="Rechercher un code, salarié, établissement, commande..." value="'+esc(promoUsageSearch)+'" oninput="promoUsageSearch=this.value;refreshPromoUsage()">'+
+ '<select onchange="promoUsageStatus=this.value;refreshPromoUsage()"><option value="Tous">Tous les états</option>'+
+ ['Appliquée','Validée'].map(t=>'<option '+(promoUsageStatus===t?'selected':'')+'>'+t+'</option>').join("")+'</select>'+
+ '<span class="pill">'+rows.length+' utilisation(s)</span></div>'+
+ '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Code</th><th>Salarié</th><th>Établissement</th><th>Commande</th><th>Facture</th><th>Remise</th><th>État</th></tr></thead>'+
+ '<tbody id="promoUsageRows">'+promoUsageRowsHTML(rows)+'</tbody></table></div></section>';
+}
+function promoUsageRowsHTML(rows){
+ if(!rows.length)return '<tr><td colspan="8" class="empty">Aucune utilisation enregistrée pour ce filtre.</td></tr>';
+ return rows.map(x=>'<tr><td>'+esc(x.date)+'</td><td><b>'+esc(x.code)+'</b></td>'+
+ '<td>'+esc(x.employeeName)+'</td><td>'+esc(x.establishment)+'</td>'+
+ '<td>'+esc(x.orderId)+'</td><td>'+esc(x.invoice)+'</td>'+
+ '<td>'+money(x.amount)+'</td><td><span class="discount-usage-status '+(x.status==="Validée"?"confirmed":"")+'">'+esc(x.status)+'</span></td></tr>').join("");
+}
+function refreshPromoUsage(){
+ const tbody=document.getElementById("promoUsageRows");
+ if(tbody)tbody.innerHTML=promoUsageRowsHTML(matchingPromoUsage());
+}
+const discountViewBeforeUsageV16=discountsView;
+discountsView=function(){
+ return discountViewBeforeUsageV16()+promoUsageHTML();
+};
+function exportPromoUsageCSV(){
+ const rows=matchingPromoUsage();
+ if(!rows.length){toast("Aucune utilisation à exporter");return}
+ const csvCell=v=>'"'+String(v??"").replace(/"/g,'""').replace(/^[=+\-@\t\r]/,"'</body></html>")+'"';
+ const cols=["Date","Code","Salarié","Établissement","Commande","Facture","Montant remise","Statut"];
+ const lines=[cols.map(csvCell).join(";"),...rows.map(x=>[x.date,x.code,x.employeeName,x.establishment,x.orderId,x.invoice,x.amount,x.status].map(csvCell).join(";"))];
+ const blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");a.href=url;a.download="cse_suivi_utilisation_codes.csv";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 </script></body></html>
