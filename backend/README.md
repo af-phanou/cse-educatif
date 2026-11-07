@@ -271,3 +271,37 @@ mettre en place comptes superadmin authentifies, MFA, sessions serveur,
 protection CSRF, audit individualise, rotation des secrets, tests de
 securite, sauvegardes testees et verification RGPD. Actuellement le
 panneau n'est utilisable que par la personne ayant l'acces SSH et le jeton.
+
+
+### Correctif Docker 29 : port 8088 non publie
+
+Sur certaines versions de Docker Engine 29 avec Ubuntu 26.04, un port declare
+dans `ports` n'est **pas** publie si le service n'est relie qu'a un
+reseau Docker `internal: true`. Le conteneur peut rester `healthy`
+alors que `curl http://127.0.0.1:8088/` echoue.
+
+Le fichier `compose.vps.yaml` relie donc maintenant le service
+`etablissements_admin` a deux reseaux :
+
+- `cse_private` (interne), pour PostgreSQL ;
+- `cse_panel_bridge` (bridge normal et dedie), pour permettre la
+  publication locale `127.0.0.1:8088:3100`.
+
+Le port n'est **jamais** publie sur `0.0.0.0` et ne doit pas etre ajoute
+a Caddy ou a UFW.
+
+Sur Ubuntu, apres `git -C app/maquette pull --ff-only` :
+
+```bash
+cd /srv/cse-educatif
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --force-recreate etablissements_admin
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml ps
+curl -I http://127.0.0.1:8088/
+```
+
+La derniere commande doit repondre `HTTP/1.1 200 OK`.
+La colonne `PORTS` du panneau doit afficher
+`127.0.0.1:8088->3100/tcp`.
