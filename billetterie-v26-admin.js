@@ -211,4 +211,5 @@ ticketsView=view;
 window.addEventListener("storage",e=>{
  if(e.key===store.SUPPLIER_KEY&&typeof route!=="undefined"&&route==="tickets")render();
 });
+if(typeof route!=="undefined"&&route==="tickets"&&typeof render==="function")render();
 })();
