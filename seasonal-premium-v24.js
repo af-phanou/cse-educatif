@@ -46,7 +46,7 @@ const CHRISTMAS_SVG=
  '</svg>';
 const BAT_PATH='M0 8C-11-4-24-17-38-12C-46-8-46-1-45 7C-61-13-80-12-93-3C-85 12-71 17-57 14C-48 25-35 26-25 19C-13 18-6 25 0 29C6 25 13 18 25 19C35 26 48 25 57 14C71 17 85 12 93-3C80-12 61-13 45 7C46-1 46-8 38-12C24-17 11-4 0 8Z';
 function bat(x,y,scale,opacity,delayed){
- return '<g class="cse-v24-bat'+(delayed?' delay':'')+'" transform="translate('+x+' '+y+') scale('+scale+')" fill="#140e20" opacity="'+opacity+'"><path d="'+BAT_PATH+'"/></g>';
+ return '<g transform="translate('+x+' '+y+') scale('+scale+')" opacity="'+opacity+'"><g class="cse-v24-bat'+(delayed?' delay':'')+'" fill="#140e20"><path d="'+BAT_PATH+'"/></g></g>';
 }
 const HALLOWEEN_SVG=
  '<svg class="cse-v24-canvas" viewBox="0 0 510 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" xmlns="'+NS+'">'+
