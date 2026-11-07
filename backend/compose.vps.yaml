@@ -37,10 +37,12 @@ services:
       DB_ADMIN_PASSWORD_FILE: /run/secrets/postgres_password
       APP_DB_PASSWORD_FILE: /run/secrets/app_db_password
       ESTABLISHMENTS_DB_PASSWORD_FILE: /run/secrets/establishments_db_password
+      REVIEWER_DB_PASSWORD_FILE: /run/secrets/registration_reviewer_db_password
     secrets:
       - postgres_password
       - app_db_password
       - establishments_db_password
+      - registration_reviewer_db_password
     networks:
       - cse_private
 
@@ -86,6 +88,45 @@ services:
       timeout: 5s
       retries: 3
 
+  inscriptions_admin:
+    build:
+      context: ./app/maquette/backend
+    command: ["node", "src/registration-review-private-server.js"]
+    restart: unless-stopped
+    # Acces strictement local sur le VPS, via tunnel SSH depuis Windows.
+    # Ne PAS ouvrir 8089 au pare-feu ni l'ajouter a Caddy.
+    ports:
+      - "127.0.0.1:8089:3101"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "3101"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: cse_educatif
+      DB_USER: cse_registration_reviewer
+      DB_PASSWORD_FILE: /run/secrets/registration_reviewer_db_password
+      REVIEW_TOKEN_FILE: /run/secrets/registration_review_panel_token
+    secrets:
+      - registration_reviewer_db_password
+      - registration_review_panel_token
+    networks:
+      - cse_private
+      - cse_panel_bridge
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3101/healthz').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1));"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
 secrets:
   app_db_password:
     file: ./secrets/app_db_password
@@ -93,6 +134,10 @@ secrets:
     file: ./secrets/establishments_db_password
   establishments_panel_token:
     file: ./secrets/establishments_panel_token
+  registration_reviewer_db_password:
+    file: ./secrets/registration_reviewer_db_password
+  registration_review_panel_token:
+    file: ./secrets/registration_review_panel_token
 
 networks:
   cse_panel_bridge:
