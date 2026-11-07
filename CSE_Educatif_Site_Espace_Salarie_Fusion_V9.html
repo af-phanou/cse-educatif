@@ -19,4 +19,58 @@ function ticketsPage(){let t=orders.flatMap(o=>o.tickets.map(x=>({...x,order:o})
 function profilePage(){return header('Mon profil','Coordonnées et préférences de communication.')+`<div class="card" style="max-width:760px"><div class="row"><div class="field" style="flex:1"><label>Prénom</label><input id="first" value="${esc(profile.first)}"></div><div class="field" style="flex:1"><label>Nom</label><input id="last" value="${esc(profile.last)}"></div></div><div class="field"><label>Établissement (non modifiable)</label><input readonly value="${esc(profile.est)}"></div><div class="field"><label>Email</label><input id="email" type="email" value="${esc(profile.email)}"></div><div class="field"><label>Téléphone</label><input id="phone" value="${esc(profile.phone)}"></div><div class="field"><label>Adresse postale</label><input id="address" value="${esc(profile.address)}"></div><label style="display:flex;gap:10px;align-items:center;margin:16px 0"><input type="checkbox" id="newsletter" ${newsletter?'checked':''}> Je souhaite recevoir les newsletters du CSE.</label><button class="btn primary" onclick="saveProfile()">Enregistrer mon profil</button></div>`}function saveProfile(){for(let k of ['first','last','email','phone','address'])profile[k]=document.getElementById(k).value;newsletter=document.getElementById('newsletter').checked;notify('Profil modifié dans cette session de démonstration');render()}
 function downloadFile(name,contents,type){let blob=new Blob([contents],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}function simplePDF(lines){let content=['BT /F1 16 Tf 50 760 Td'];lines.forEach((s,i)=>{let ascii=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,'?').replace(/[()\\]/g,'');content.push((i?'0 -28 Td ':'')+'('+ascii+') Tj')});content.push('ET');let stream=content.join('\n'),objs=['<< /Type /Catalog /Pages 2 0 R >>','<< /Type /Pages /Kids [3 0 R] /Count 1 >>','<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`];let pdf='%PDF-1.4\n',offsets=[0];objs.forEach((o,i)=>{offsets.push(pdf.length);pdf+=`${i+1} 0 obj\n${o}\nendobj\n`});let start=pdf.length;pdf+='xref\n0 6\n0000000000 65535 f \n'+offsets.slice(1).map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${start}\n%%EOF`;return pdf}function downloadTicket(i){let t=orders.flatMap(o=>o.tickets.map(x=>({...x,order:o})))[i];if(t)downloadFile(t.name,simplePDF(['BILLET DE DEMONSTRATION - NON VALABLE','CSE Educatif - Les Papillons Blancs',t.supplier,profile.first+' '+profile.last,'Commande '+t.order.id,'Facture '+t.order.invoice]),'application/pdf')}function downloadInvoice(id){let o=orders.find(x=>x.id===id);downloadFile(o.invoice+'.pdf',simplePDF(['RECAPITULATIF DE DEMONSTRATION - NON VALABLE','CSE Educatif',profile.first+' '+profile.last,'Commande '+o.id,'Document '+o.invoice,'Total '+o.total.toFixed(2)+' EUR','Aucun document fiscal reel emis']), 'application/pdf')}
 render();
+</script>
+<style>
+.cse-featured-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cse-featured{border:1px solid #dce6f0;background:white;border-radius:13px;padding:15px}
+.cse-featured h3{margin:7px 0}
+.cse-storefront{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cse-storefront .store-card{border:1px solid #dce6f0;border-radius:14px;padding:19px;background:white}
+.cse-storefront .store-card select{width:100%;padding:11px;border:1px solid #c5d8ec;border-radius:9px;margin:12px 0}
+.cse-delay{display:inline-block;background:#fff3d9;color:#925d00;padding:6px 11px;border-radius:14px;font-size:12px;margin:7px 0}
+.cse-cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.cse-cats button.active{background:#1278cc;color:white}
+@media(max-width:700px){.cse-featured-grid,.cse-storefront{grid-template-columns:1fr}}
+</style>
+<script>
+/* V12 : site public synchronisé avec le back-office dans le même navigateur */
+const SHAREDPAGES="cse_fusion_v12_pages";
+const originalSyncProducts=cseSyncProducts;
+cseSyncProducts=function(){
+originalSyncProducts();
+try{const shared=JSON.parse(localStorage.getItem(CSE_STORE));if(shared&&Array.isArray(shared.products)){
+products=shared.products.map(p=>({id:p.id,name:p.name,cat:p.cat||p.category,emoji:"🎟️",public:Number(p.public)||0,price:Number(p.cse)||0,supplier:p.supplier||"Fournisseur à renseigner",featured:!!p.featured,longDelay:!!p.longDelay,stock:Number(p.stock)||0,unlimited:!!p.unlimited,desc:p.longDelay?"Délai fournisseur prolongé":"Offre réservée aux salariés"}))}}
+catch(e){}
+};
+function sharedPage(name){try{let data=JSON.parse(localStorage.getItem(SHAREDPAGES));if(data?.pages&&data?.blocks){let p=data.pages.find(p=>p.name===name);return p?data.blocks[name]:null}}catch(e){}return null}
+function publicFeatured(n){return '<div class="cse-featured-grid">'+products.filter(p=>p.featured).slice(0,Math.min(8,n||8)).map(p=>'<div class="cse-featured"><div class="small muted">'+esc(p.cat)+' · '+esc(p.supplier)+'</div><h3>'+esc(p.name)+'</h3><div class="row"><s>'+euro(p.public)+'</s><b style="color:#1278cc;font-size:21px">'+euro(p.price)+'</b></div>'+(p.longDelay?'<span class="cse-delay">⏳ Délai fournisseur prolongé</span>':'')+'<p><button class="btn primary" onclick="go(\'catalog\')">Voir l’offre</button></p></div>').join("")+'</div>'}
+function sharedBlockRender(b){
+switch(b.type){
+case "hero":return '<div class="hero"><h1>'+esc(b.title||"")+'</h1><p>'+esc(b.text||"")+'</p><button class="btn" onclick="go(\'catalog\')">Découvrir les offres</button></div>';
+case "featured":return '<section class="section"><h2>'+esc(b.title||"Nos offres à la une")+'</h2>'+publicFeatured(Number(b.limit)||8)+'</section>';
+case "heading":return '<div class="section"><h2>'+esc(b.title||"")+'</h2></div>';
+case "text":return '<div class="section"><p style="white-space:pre-wrap">'+esc(b.text||"")+'</p></div>';
+case "columns":return '<div class="section two"><div class="card">'+esc(b.left||"")+'</div><div class="card">'+esc(b.right||"")+'</div></div>';
+case "image":return b.url&&/^https:\/\//.test(b.url)?'<div class="section"><img style="width:100%;max-height:420px;object-fit:cover" src="'+esc(b.url)+'" alt="'+esc(b.title||"")+'"></div>':'';
+case "video":{let url="";try{let u=new URL(b.url),host=u.hostname.replace(/^www\./,"");if(host==="youtube.com"||host==="m.youtube.com"){let id=u.searchParams.get("v");if(/^[\w-]{11}$/.test(id||""))url="https://www.youtube-nocookie.com/embed/"+id}else if(host==="youtu.be"){let id=u.pathname.slice(1);if(/^[\w-]{11}$/.test(id))url="https://www.youtube-nocookie.com/embed/"+id}else if(host==="vimeo.com"&&/^\d+$/.test(u.pathname.slice(1)))url="https://player.vimeo.com/video/"+u.pathname.slice(1)}catch(e){}
+return url?'<section class="section"><iframe title="Vidéo" src="'+esc(url)+'" loading="lazy" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0;border-radius:12px"></iframe></section>':''}
+case "button":return b.url&&/^https:\/\//.test(b.url)?'<p><a class="btn" target="_blank" rel="noopener noreferrer" href="'+esc(b.url)+'">'+esc(b.label||"En savoir plus")+'</a></p>':'';
+default:return ""}
+}
+}
+const legacyHome=home,legacyAbout=about,legacyContact=contact;
+home=function(){let blocks=sharedPage("Accueil");if(!blocks||!blocks.length)return legacyHome()+'<section class="section"><h2>Offres mises en avant</h2>'+publicFeatured(8)+'</section>';return blocks.map(sharedBlockRender).join("")};
+about=function(){let blocks=sharedPage("Le CSE");return blocks?.length?blocks.map(sharedBlockRender).join(""):legacyAbout()};
+contact=function(){let blocks=sharedPage("Contact");return (blocks?.length?blocks.map(sharedBlockRender).join(""):"")+legacyContact()};
+let cseVariants={};
+catalog=function(){
+let cats=["Toutes",...new Set(products.map(p=>p.cat))];let chosen=products.filter(p=>(category==="Toutes"||p.cat===category)&&[p.name,p.supplier,p.cat].join(" ").toLowerCase().includes(query.toLowerCase()));let groups={};chosen.forEach(p=>{let key=p.cat+"|"+p.supplier;(groups[key]??=[]).push(p)});
+return header("Boutique & billetterie","Produits regroupés par catégorie puis par fournisseur, avec une liste déroulante pour les tarifs.")+
+'<div class="cse-cats">'+cats.map(c=>'<button class="'+(category===c?'active':'')+'" onclick="category='+JSON.stringify(c).replace(/"/g,'&quot;')+';render()">'+esc(c)+'</button>').join("")+'</div>'+
+'<div class="toolbar"><input placeholder="Rechercher un fournisseur, un produit…" value="'+esc(query)+'" oninput="query=this.value;render()"><button class="btn" onclick="go(\'cart\')">🛒 Panier ('+cart.reduce((n,x)=>n+x.qty,0)+')</button></div>'+
+'<div class="cse-storefront">'+Object.entries(groups).map(([group,items])=>{let key=group;let active=items.find(p=>p.id===cseVariants[key])||items[0];cseVariants[key]=active.id;return '<article class="store-card"><span class="pill">'+esc(active.cat)+'</span><h3>'+esc(active.supplier)+'</h3><label class="small">Choisir une formule</label><select onchange="cseVariants['+JSON.stringify(key).replace(/"/g,'&quot;')+']=Number(this.value);render()">'+items.map(p=>'<option value="'+p.id+'" '+(active.id===p.id?'selected':'')+'>'+esc(p.name)+' — '+euro(p.price)+'</option>').join("")+'</select><div class="row"><s>'+euro(active.public)+'</s><strong style="font-size:23px;color:#1278cc">'+euro(active.price)+'</strong></div>'+(active.longDelay?'<div class="cse-delay">⏳ Délai fournisseur plus important</div>':'')+'<p class="small muted">'+(active.unlimited||active.stock>0?"✓ Disponible":"Indisponible")+'</p><button class="btn primary" onclick="addCart('+active.id+')" '+(!active.unlimited&&active.stock<=0?'disabled':'')+'>Ajouter au panier</button></article>'}).join("")+'</div>';
+};
+updateCatalog=function(){render()};
+window.addEventListener("storage",e=>{if(e.key===SHAREDPAGES)render()});
+cseSyncProducts();render();
 </script></body></html>
