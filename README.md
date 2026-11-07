@@ -39,3 +39,9 @@ Dans **Administration → Commandes** : sélection des commandes via cases à co
 Le changement d'état de la case **Validation automatique des commandes payées** (activation et désactivation) demande un **code PIN de 4 chiffres**. Pour la maquette uniquement, le code est **2027**. Un code incorrect ou une annulation laisse le mode inchangé.
 
 **Ce PIN est visible dans le code JavaScript et ne sécurise pas une vraie application.** En production, contrôle côté serveur réservé au superadministrateur, hachage du secret, limitation des tentatives et journal d'audit sont nécessaires. Cette maquette n'effectue aucune validation de commande en arrière-plan.
+
+## Suivi des bénéficiaires des codes (V16)
+
+**Administration → Codes de réduction → Suivi des utilisations** affiche la date, le code, le nom du salarié, l'établissement, la commande, la facture, la remise et le statut « Appliquée » ou « Validée ». Recherche, filtrage par lot et export CSV. La validation individuelle ou groupée met à jour le statut si une utilisation a été enregistrée.
+
+**Limite de la maquette :** le suivi concerne les codes appliqués depuis l'administration de démonstration. Les anciennes utilisations déjà comptabilisées n'ont pas forcément d'identité rattachée, et la boutique salariée n'est pas encore raccordée à ce registre. En production : enregistrement transactionnel de l'utilisation à la validation de commande, identification fiable du salarié, prévention de la double utilisation et accès limité au superadministrateur.
