@@ -65,7 +65,7 @@ header{border-bottom:2px solid #1278CC}
 .brand-wrap{background:#fff;border:1px solid #d7e6f7;padding:10px 9px}
 .brand-logo{width:205px;max-height:85px}
 .badge,.pill.ok{background:#e5f2ff;color:#0F2660}
-</style></head><body><h1>CSE Éducatif</h1><h2>Facture F-2027-${id.slice(-3)}</h2><p>${esc(e.first+" "+e.last)} — ${esc(e.est)}</p><table><tr><th>Article</th><th>Qté</th><th>Total</th></tr><tr><td>${esc(p.name)}</td><td>${o.qty}</td><td>${money(o.total)}</td></tr></table><h2>Total : ${money(o.total)}</h2><p>DOCUMENT DE DÉMONSTRATION — NON VALABLE COMPTABLEMENT</p><script src="cms-featured-v19.js"></script></body></html>`);w.document.close()}
+</style></head><body><h1>CSE Éducatif</h1><h2>Facture F-2027-${id.slice(-3)}</h2><p>${esc(e.first+" "+e.last)} — ${esc(e.est)}</p><table><tr><th>Article</th><th>Qté</th><th>Total</th></tr><tr><td>${esc(p.name)}</td><td>${o.qty}</td><td>${money(o.total)}</td></tr></table><h2>Total : ${money(o.total)}</h2><p>DOCUMENT DE DÉMONSTRATION — NON VALABLE COMPTABLEMENT</p></body></html>`);w.document.close()}
 let invoiceSort='date',invoiceAsc=false,invoiceSelection=new Set();
 function invoiceStatus(o){return o.paid?'Réglée':o.status==='Impayée +30j'?'Échue':'En attente de paiement'}
 function sortInvoices(key){if(invoiceSort===key)invoiceAsc=!invoiceAsc;else{invoiceSort=key;invoiceAsc=true}render()}
@@ -876,4 +876,4 @@ refreshPromoUsage=function(){
   if(newFooter)oldFooter.replaceWith(newFooter);
  }
 };
-</script><script src="catalogue-v18.js"></script><script src="catalogue-admin-v18.js"></script></body></html>
+</script><script src="catalogue-v18.js"></script><script src="catalogue-admin-v18.js"></script><script src="cms-featured-v19.js"></script></body></html>
