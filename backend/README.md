@@ -616,3 +616,18 @@ superadministrateur avec MFA et audit nominatif, l'information RH
 des salariés et une analyse des transferts de données conformément au
 RGPD pour l'hébergement au Canada. Ne jamais déposer les vrais CSV
 dans le dépôt GitHub ou dans le dossier public `site/`.
+
+
+### Réactivation et précautions
+
+Un lot archivé peut être réactivé sur confirmation `ACTIVER`,
+avec une mise en garde spécifique. Ceci permet de réutiliser un fichier
+mensuel identique, mais il faut impérativement contrôler que les personnes
+qu'il contient sont toujours éligibles. Le retour au lot précédent ne
+révoque ni n'active aucun compte existant.
+
+Les caractères illisibles introduits par un mauvais encodage sont
+rejetés : demander une exportation au format **CSV UTF-8** avant l'import.
+Le service conserve seulement les trois champs d'éligibilité ; les
+colonnes supplémentaires, si elles existent dans le fichier transmis,
+sont ignorées et non stockées.
