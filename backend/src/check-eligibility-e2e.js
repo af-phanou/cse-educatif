@@ -124,7 +124,8 @@ async function main() {
     const otherSite = await prepareRegistration(client, fictitiousForm("BETA", "01"));
     assertClassification(otherSite, "manual_review", "not_found", false);
 
-    const unknownSite = await prepareRegistration(client, fictitiousForm("BETA", "99"));
+    const unknownCode = "X" + randomBytes(8).toString("hex").toUpperCase();
+    const unknownSite = await prepareRegistration(client, fictitiousForm("BETA", unknownCode));
     assertClassification(unknownSite, "manual_review", "establishment_unavailable", false);
 
     // Les 6 verifications se font contre la VRAIE base, pas des mockups.
