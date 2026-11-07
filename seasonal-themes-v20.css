@@ -1,0 +1,35 @@
+/* Themes saisonniers CSE Educatif V20. Identite principale toujours bleue et blanche. */
+.cse-season-manager{border:1px solid #d8e5f5;border-radius:15px;background:#fff;padding:18px;margin:0 0 19px;box-shadow:0 3px 14px #0f266008}
+.cse-season-manager h3{margin:0 0 5px}.cse-season-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}
+.cse-season-option{border:1px solid #d5e4f4;border-radius:11px;padding:11px;display:flex;align-items:center;gap:8px;cursor:pointer;min-height:57px;font-weight:650;background:#fff}
+.cse-season-option input{accent-color:#1278cc}.cse-season-option:has(input:checked){border-color:#1278cc;background:#eef6ff;box-shadow:inset 0 0 0 1px #1278cc}
+.cse-season-option .season-glyph{font-size:21px;width:25px;text-align:center}.cse-season-option small{display:block;font-size:11px;font-weight:400;color:#698299}
+.cse-season-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cse-season-state{font-size:12px;color:#58728f}.cse-season-preview{border-radius:12px;overflow:hidden;margin:13px 0;padding:17px 20px;position:relative;color:#fff;background:linear-gradient(110deg,#0f2660,#1278cc)}
+.cse-season-preview strong{font-size:16px;display:block}.cse-season-preview p{font-size:12px;margin:4px 0 0;max-width:600px}.cse-season-preview.christmas{background:linear-gradient(110deg,#0f2660,#175f64)}
+.cse-season-preview.halloween{background:linear-gradient(110deg,#13244d,#59416c)}
+.cse-season-preview.spring{background:linear-gradient(110deg,#0f2660,#3e9a9d)}
+.cse-season-preview.summer{background:linear-gradient(110deg,#0f2660,#258ab9)}
+.cse-season-preview.autumn{background:linear-gradient(110deg,#0f2660,#995a40)}
+.cse-season-preview.winter{background:linear-gradient(110deg,#0f2660,#5a8ebb)}
+.cse-season-preview.valentine{background:linear-gradient(110deg,#0f2660,#a65385)}
+.cse-season-preview .preview-symbol{position:absolute;right:22px;top:4px;font-size:54px;opacity:.43}
+body[data-cse-theme="christmas"] .hero{background:linear-gradient(120deg,#0f2660,#1e676c)!important}
+body[data-cse-theme="halloween"] .hero{background:linear-gradient(120deg,#0f2660,#66466c)!important}
+body[data-cse-theme="spring"] .hero{background:linear-gradient(120deg,#0f2660,#388c96)!important}
+body[data-cse-theme="summer"] .hero{background:linear-gradient(120deg,#0f2660,#3189b4)!important}
+body[data-cse-theme="autumn"] .hero{background:linear-gradient(120deg,#0f2660,#9c684e)!important}
+body[data-cse-theme="winter"] .hero{background:linear-gradient(120deg,#0f2660,#6593bd)!important}
+body[data-cse-theme="valentine"] .hero{background:linear-gradient(120deg,#0f2660,#9a5a8f)!important}
+body[data-cse-theme]:not([data-cse-theme="none"]) .section>h2{border-left:4px solid var(--cse-season-accent,#1278cc);padding-left:10px}
+body[data-cse-theme="christmas"]{--cse-season-accent:#277965}
+body[data-cse-theme="halloween"]{--cse-season-accent:#a16b33}
+body[data-cse-theme="spring"]{--cse-season-accent:#6b9e84}
+body[data-cse-theme="summer"]{--cse-season-accent:#d5a742}
+body[data-cse-theme="autumn"]{--cse-season-accent:#b77749}
+body[data-cse-theme="winter"]{--cse-season-accent:#8aaed2}
+body[data-cse-theme="valentine"]{--cse-season-accent:#bf7aa5}
+.cse-season-particles{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:8}
+.cse-season-particle{position:absolute;top:-14vh;left:var(--x);font-size:var(--size);opacity:0;filter:drop-shadow(0 1px 1px #0f266030);animation:cse-season-fall var(--duration) linear var(--delay) infinite;will-change:transform,opacity}
+@keyframes cse-season-fall{0%{transform:translate3d(0,-12vh,0) rotate(0deg);opacity:0}10%{opacity:.6}80%{opacity:.53}100%{transform:translate3d(var(--drift),125vh,0) rotate(var(--turn));opacity:0}}
+@media(max-width:850px){.cse-season-options{grid-template-columns:repeat(2,minmax(0,1fr))}.cse-season-particle:nth-child(n+10){display:none}}
+@media(prefers-reduced-motion:reduce){.cse-season-particles{display:none!important}.cse-season-particle{animation:none!important}}
