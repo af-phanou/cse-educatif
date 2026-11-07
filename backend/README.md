@@ -99,3 +99,43 @@ Cette verification **n'importe ni ne stocke** le fichier et ne cree
 aucun compte. L'import mensuel et la creation d'un compte seront raccordes
 au backend uniquement apres l'ajout de l'authentification administrateur,
 de la revue manuelle, des emails et des protections RGPD.
+
+
+## Inscription salarie : etape preparatoire
+
+Fichiers :
+- `src/registration.js` : nettoie et valide les champs saisis
+  par le salarie, consulte uniquement le **dernier lot CSV actif** par requete
+  SQL parametree, classe une correspondance unique comme "eligible_provisional"
+  et tous les cas incertains en "manual_review".
+- `test/registration.test.js` : 10 tests unitaires couvrant les
+  donnees saisies, homonymes, absence, absence de CSV actif et discretion des
+  reponses publiques.
+- `migrations/002_app_readonly.sql` : retire les droits d'ecriture
+  de l'API sur les fichiers d'eligibilite, comptes et demandes de revue, en
+  attendant un vrai parcours authentifie.
+
+**Attention :** aucune inscription n'est encore enregistree, aucun compte
+active, aucun email envoye et aucun endpoint HTTP d'inscription expose.
+L'objet `publicStatus` ne doit pas etre utilise comme un
+accuse de reception avant la creation du service de persistance. Le
+formulaire final necessitera hachage Argon2id, verification de possession
+de l'adresse email, limitation des tentatives, anti-enumeration,
+administration securisee, audit et envoi email via un service reel.
+
+Commandes de controle VPS (donnees uniquement fictives) :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api node --test 'test/*.test.js'
+```
+
+Puis, apres validation des tests, appliquer la migration restrictive :
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+```
+
+La migration 002 est prevue pour etre rejouee sans modification
+lorsqu'elle a deja ete appliquee. Ne pas importer de CSV RH reel.
