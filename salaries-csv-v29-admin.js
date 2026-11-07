@@ -65,7 +65,7 @@ async function loadFile(file){
   const parsed=core.parse(text);
   pending={
    parsed,fileName:file.name,encoding,period:periodDefault(),
-   decisions:{},deactivateMissing:history.length>0,
+   decisions:{},deactivateMissing:false,
    importedAt:NOW(),fileSize:file.size
   };
   toast("CSV lu : "+parsed.records.length+" ligne(s), "+parsed.invalidCount+" erreur(s).");
@@ -106,7 +106,7 @@ const labels={
  transfer:"Transfert confirmé",review:"À rapprocher",error:"Anomalie CSV"
 };
 function decisionSelect(action){
- if(action.action!=="review")return "";
+ if(action.action!=="review"&&!(action.action==="transfer"||action.action==="new") || !action.candidates?.length)return "";
  const v=pending.decisions[String(action.line)]||"";
  return '<select class="v29-decision" aria-label="Décision pour la ligne '+action.line+'" onchange="cseCsvDecision('+action.line+',this.value)">'+
  '<option value="">— Sélectionner une décision —</option>'+
@@ -146,7 +146,7 @@ function previewView(){
  '<tbody>'+outcome.actions.slice(0,200).map(a=>'<tr class="v29-row-'+a.action+'"><td>'+a.line+'</td><td><b>'+safeString(a.last)+'</b></td>'+
  '<td>'+safeString(a.first)+'</td><td>'+safeString(a.number)+'</td>'+
  '<td><span class="v29-status '+a.action+'">'+(labels[a.action]||safeString(a.action))+'</span></td>'+
- '<td>'+(a.action==="review"?decisionSelect(a):
+ '<td>'+((a.action==="review"||(a.candidates?.length&&pending.decisions[String(a.line)]))?decisionSelect(a):
  a.action==="error"?'<span class="v29-red">'+safeString(a.message)+'</span>':
  a.action==="transfer"?'<span class="v29-note">'+safeString(a.message)+'</span>':
  a.action==="reactivate"?'<span class="v29-note">Réactivation de la fiche #'+safeString(a.existingId)+'</span>':
@@ -243,6 +243,26 @@ window.cseCsvCancel=cancelPreview;
 window.cseCsvApply=apply;
 window.cseCsvDownloadReport=downloadReport;
 hydrate();
+/* Accès direct dans le menu pour retrouver facilement l'injection mensuelle. */
+if(typeof navRender==="function"){
+ const previousCsvNav=navRender;
+ navRender=function(){
+  previousCsvNav();
+  const nav=document.getElementById("nav");
+  if(!nav||document.getElementById("v29CsvNavButton"))return;
+  const btn=document.createElement("button");
+  btn.type="button";btn.id="v29CsvNavButton";
+  btn.textContent="⇧ Import CSV salariés";
+  btn.title="Ouvrir l'import mensuel du fichier RH";
+  btn.onclick=()=>{
+   navigate("employees");
+   document.getElementById("v29Importer")?.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  const employeeLink=[...nav.querySelectorAll("button")].find(x=>x.textContent.includes("Salariés"));
+  if(employeeLink)employeeLink.insertAdjacentElement("afterend",btn);
+  else nav.appendChild(btn);
+ };
+}
 const originalViewV29=employeesView;
 employeesView=function(){return importPanel()+originalViewV29()};
 const originalSaveV29=saveEmployee;
