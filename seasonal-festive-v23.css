@@ -160,3 +160,21 @@ body[data-cse-theme="halloween"] .cse-ghost-corner{position:absolute;right:2%;to
  body[data-cse-theme="christmas"] .card:hover,body[data-cse-theme="halloween"] .card:hover,
  body[data-cse-theme="christmas"] .c18-public-featured:hover,body[data-cse-theme="halloween"] .c18-public-featured:hover{transform:none}
 }
+
+/* Aperçu de thème visible dans l'éditeur de pages : proche du résultat public. */
+.cse-season-preview.christmas{
+ background:radial-gradient(circle at 92% 12%,#d94945 0,transparent 33%),linear-gradient(112deg,#a91b29,#c43339 49%,#0f6247)!important;
+ border:2px solid #e7c47a;box-shadow:0 8px 25px #902d3042;padding:25px 24px;
+}
+.cse-season-preview.halloween{
+ background:radial-gradient(circle at 90% 24%,#f5aa34 0,#eb7821 14%,transparent 15%),linear-gradient(108deg,#21162e,#4c294a 70%,#994011)!important;
+ border:2px solid #ef891c;box-shadow:0 8px 25px #38204450;padding:25px 24px;
+}
+.cse-season-preview.christmas::after{
+ content:"🎄  🎁  ❄";position:absolute;right:22px;bottom:6px;font-size:36px;opacity:.75;pointer-events:none
+}
+.cse-season-preview.halloween::after{
+ content:"🎃  👻  🦇";position:absolute;right:20px;bottom:5px;font-size:35px;opacity:.9;pointer-events:none
+}
+.cse-season-preview.christmas .preview-symbol,.cse-season-preview.halloween .preview-symbol{display:none}
+@media(max-width:650px){.cse-season-preview.christmas::after,.cse-season-preview.halloween::after{font-size:22px;opacity:.4}}
