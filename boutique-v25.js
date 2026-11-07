@@ -42,7 +42,7 @@
       park:'<circle cx="60" cy="51" r="32"/><circle cx="60" cy="51" r="7"/><path d="M60 19v64M28 51h64M37 28l46 46M83 28L37 74M60 83l-22 27M60 83l22 27M28 110h64"/>',
       fresh:'<path d="M32 52h56l-6 48H38zM43 52c-8-15 2-29 13-33 9 11 7 24 4 33M64 52c-5-17 7-33 22-34 4 18-3 31-14 34M40 68h40M44 82h32"/>',
       sport:'<circle cx="60" cy="57" r="36"/><path d="M43 33l16-7 18 12-4 18-22 5-13-15zM51 61l9 18 24-6M43 33l-15 11M77 38l13 2M60 79l-1 15"/>',
-      generic:'<path d="M25 34h70v20c-12 0-12 16 0 16v20H25V70c12 0 12-16 0-16zM65 34v56" stroke-dasharray="0 0 M0 0"/><path d="M68 34v56" stroke-dasharray="5 6"/>'
+      generic:'<path d="M25 34h70v20c-12 0-12 16 0 16v20H25V70c12 0 12-16 0-16zM65 34v56"/><path d="M68 34v56" stroke-dasharray="5 6"/>'
     };
     return '<div class="v25-placeholder v25-placeholder-' + family + '" role="img" aria-label="Illustration générique de la catégorie ' + esc(p.category) + '">' +
       '<svg viewBox="0 0 120 120" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">' +
