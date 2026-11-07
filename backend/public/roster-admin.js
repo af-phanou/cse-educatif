@@ -120,9 +120,9 @@
       if(!csvText)throw Error("Le fichier est vide.");
       $("preview").disabled=true;
       const data=await api("/api/preview","POST",{csv:csvText});
-      $("stats").textContent=data.rows+" lignes · "+data.duplicateRows+
-        " doublons supplémentaires · "+data.ambiguousGroups+
-        " groupe(s) avec homonymes.";
+      $("stats").textContent=data.rows+" lignes · Identités identiques à vérifier : "+
+        data.ambiguousGroups+" groupe(s), "+data.duplicateRows+
+        " ligne(s) répétée(s).";
       $("establishments").textContent="Répartition par établissement : "+
         data.establishments.map(x=>x.code+" ("+x.count+")").join(", ")+
         ". Aucune autre colonne n'est stockée.";
