@@ -1,0 +1,34 @@
+:root{color-scheme:light;--bg:#f4f7fb;--navy:#0f2660;--blue:#1278cc;--line:#d9e5f1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;line-height:1.5;color:#21324b}
+header{background:#fff;border-bottom:1px solid var(--line);padding:16px 0}
+.wrap{max-width:1040px;margin:auto;padding:0 20px}
+.brand{font-size:20px;font-weight:750;color:var(--navy);margin-right:18px}
+main{padding-top:20px!important;padding-bottom:45px!important}
+h1{font-size:1.85rem;color:var(--navy)}
+h2{font-size:1.2rem;color:var(--navy)}
+.muted{color:#5c7186;font-size:.9rem}
+.warning{border-left:4px solid var(--blue);background:#e6f3fd;padding:12px 16px;border-radius:5px}
+.box{padding:20px;margin:18px 0;background:white;border:1px solid var(--line);border-radius:12px}
+.inline{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.inline label{width:100%}
+input,textarea{width:100%;font:inherit;padding:10px;border:1px solid #98aec7;border-radius:7px;background:#fff;color:#18283a}
+.inline input{flex:1;min-width:220px}
+label{font-weight:650}
+button{border:0;border-radius:8px;background:var(--navy);color:white;padding:11px 19px;font:inherit;font-weight:650;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}
+button.secondary{background:#e6edf5;color:var(--navy)}
+.topline,.actions{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.actions{justify-content:flex-start;margin-top:18px}
+.table-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th{text-align:left;color:var(--navy);border-bottom:2px solid var(--line);padding:10px}
+td{border-bottom:1px solid var(--line);padding:11px}
+td input[type=number]{max-width:100px}
+td input[type=checkbox]{width:auto;transform:scale(1.15)}
+code{background:#eaf1f8;border-radius:3px;padding:2px 5px}
+#message{font-weight:650;min-height:1.5em}
+#message.error{color:#b3261e}
+#message.ok{color:#136b30}
+[hidden]{display:none!important}
+@media(max-width:700px){.wrap{padding-left:12px;padding-right:12px}.box{padding:12px}}
