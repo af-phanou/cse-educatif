@@ -3,6 +3,7 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const { Pool } = require("pg");
+const { listActiveEstablishments } = require("./establishments");
 
 const port = Number(process.env.PORT || 3000);
 const secretFile = process.env.DB_PASSWORD_FILE || "/run/secrets/app_db_password";
@@ -40,6 +41,18 @@ const server = http.createServer(async (req, res) => {
     } catch (error) {
       console.error("Database readiness failed:", error.code || error.message);
       return sendJson(res, 503, { status: "unavailable" });
+    }
+  }
+
+  // Repertoire public en lecture seule pour le futur formulaire d'inscription.
+  // Le conteneur API n'est pas encore relie au domaine public.
+  if (req.method === "GET" && req.url === "/api/etablissements") {
+    try {
+      const establishments = await listActiveEstablishments(pool);
+      return sendJson(res, 200, { establishments });
+    } catch (error) {
+      console.error("Establishment directory unavailable:", error.code || "unknown");
+      return sendJson(res, 503, { error: "service_unavailable" });
     }
   }
 
