@@ -4,8 +4,8 @@
 const KEY="cse_fusion_v20_seasonal_theme";
 const themes=[
 {id:"none",name:"Aucun thème",description:"Bleu et blanc CSE",glyph:"◯",symbol:""},
-{id:"christmas",name:"Noël",description:"Flocons et étoiles",glyph:"✦",symbol:"❄"},
-{id:"halloween",name:"Halloween",description:"Petites citrouilles",glyph:"🎃",symbol:"🎃"},
+{id:"christmas",name:"Noël",description:"Rouge profond, sapin et lumière dorée",glyph:"✧",symbol:"❄"},
+{id:"halloween",name:"Halloween",description:"Lune, brume, orange et nuit",glyph:"☾",symbol:"🎃"},
 {id:"spring",name:"Printemps",description:"Pétales et fleurs",glyph:"✿",symbol:"✿"},
 {id:"summer",name:"Été",description:"Soleils légers",glyph:"☀",symbol:"☀"},
 {id:"autumn",name:"Automne",description:"Feuilles qui tombent",glyph:"🍂",symbol:"🍂"},
