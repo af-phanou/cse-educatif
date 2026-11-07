@@ -5,7 +5,9 @@ const {
   isValidPanelToken,
   isAllowedLocalHost,
   isAllowedMutationOrigin,
-  requestPath
+  requestPath,
+  isAllowedReviewHost,
+  isAllowedReviewOrigin
 } = require("../src/private-admin-auth");
 
 const token = "a".repeat(64);
@@ -54,4 +56,22 @@ test("ignore les parametres de suivi sans modifier le chemin autorise", () => {
   assert.equal(requestPath("/api/sites?test=1"), "/api/sites");
   assert.equal(requestPath("/autre?utm_source=chatgpt.com"), "/autre");
   assert.equal(requestPath("https://evil.example/"), "");
+});
+
+
+test("le panneau des inscriptions accepte uniquement ses ports de tunnel SSH", () => {
+  assert.equal(isAllowedReviewHost("localhost:8089"), true);
+  assert.equal(isAllowedReviewHost("127.0.0.1:8089"), true);
+  assert.equal(isAllowedReviewHost("localhost:18089"), true);
+  assert.equal(isAllowedReviewHost("127.0.0.1:18089"), true);
+  assert.equal(isAllowedReviewHost("cse-educatif-rxtg.fr"), false);
+  assert.equal(isAllowedReviewHost("localhost:18088"), false);
+});
+
+test("les decisions exigent la meme origine locale que le panneau", () => {
+  assert.equal(isAllowedReviewOrigin("http://localhost:18089"), true);
+  assert.equal(isAllowedReviewOrigin("http://127.0.0.1:18089"), true);
+  assert.equal(isAllowedReviewOrigin("https://cse-educatif-rxtg.fr"), false);
+  assert.equal(isAllowedReviewOrigin("http://127.0.0.1:18088"), false);
+  assert.equal(isAllowedReviewOrigin(undefined), false);
 });
