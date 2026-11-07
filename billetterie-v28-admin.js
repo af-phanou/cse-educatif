@@ -28,7 +28,8 @@ function mappingHtml(){
 function orderRow(order){
  const status=order.status;
  const canPay=order.paymentStatus!=="Confirmé"&&status!=="Annulée";
- const canRelease=status!=="Livrée"&&status!=="Annulée";
+ const hasPdf=order.items.some(i=>!!i.ticketSupplier);
+ const canRelease=hasPdf&&status!=="Livrée"&&status!=="Annulée";
  const canCancel=status!=="Livrée"&&status!=="Annulée";
  const canMail=status==="Livrée";
  return '<tr><td><b>'+esc(order.id)+'</b><small>'+esc((order.createdAt||"").slice(0,10))+'</small></td>'+
@@ -46,6 +47,7 @@ function orderRow(order){
    '<button class="btn" onclick="cseV28ExportEmail('+arg(order.id)+')">↓ Email avec PDF (.eml)</button>'+
    '<button class="btn" onclick="cseV28MarkMail('+arg(order.id)+')">Marquer email envoyé</button>':'')+
  (canCancel?'<button class="link" onclick="cseV28CancelOrder('+arg(order.id)+')">Annuler</button>':'')+
+ (!hasPdf?'<small>Commande sans billetterie : préparation à traiter séparément.</small>':'')+
  '</div><small>'+esc(order.emailStatus||"")+'</small></td></tr>';
 }
 function webOrdersPanel(onlyTickets=false){
