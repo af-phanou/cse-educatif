@@ -41,7 +41,9 @@ function orderRow(order){
  '<td><div class="v28-mini-actions">'+
  (canPay?'<button class="btn" onclick="cseV28MarkPaid('+arg(order.id)+')">✓ Confirmer paiement</button>':'')+
  (canRelease?'<button class="btn primary" onclick="cseV28ReleaseOrder('+arg(order.id)+')">Valider & attribuer</button>':'')+
- (canMail?'<button class="btn" onclick="cseV28ExportEmail('+arg(order.id)+')">↓ Email avec PDF (.eml)</button>'+
+ (canMail?'<label class="v28-template-choice">Modèle de mail<select id="v28tpl-'+esc(order.id)+'" aria-label="Modèle de mail">'+
+   mailTemplates.map((_,i)=>'<option value="'+i+'">Modèle '+(i+1)+'</option>').join("")+'</select></label>'+
+   '<button class="btn" onclick="cseV28ExportEmail('+arg(order.id)+')">↓ Email avec PDF (.eml)</button>'+
    '<button class="btn" onclick="cseV28MarkMail('+arg(order.id)+')">Marquer email envoyé</button>':'')+
  (canCancel?'<button class="link" onclick="cseV28CancelOrder('+arg(order.id)+')">Annuler</button>':'')+
  '</div><small>'+esc(order.emailStatus||"")+'</small></td></tr>';
@@ -149,10 +151,10 @@ async function exportEmail(id){
   if(billets.length!==needs)throw new Error("Pièces jointes manquantes : "+billets.length+"/"+needs);
   const boundary="CSE-"+id.replace(/[^a-zA-Z0-9]/g,"")+"-"+Date.now();
   const subject="CSE Éducatif — Vos billets • commande "+id;
-  const message="Bonjour "+order.employee.first+",\n\nVotre commande "+id+
-   " est validée. Vous trouverez vos billets au format PDF en pièces jointes.\n"+
-   "Conservez les QR codes et présentez-les lors de votre venue.\n\n"+
-   "Bien cordialement,\nLe CSE Éducatif";
+  const chosenTemplate=Number(document.getElementById("v28tpl-"+id)?.value||0);
+  const template=mailTemplates[chosenTemplate]||mailTemplates[0];
+  const message=template.replaceAll("{prenom}",order.employee.first).replaceAll("{commande}",id)+
+   "\n\nLes billets PDF et leurs QR codes sont joints à ce message.\n\nBien cordialement,\nLe CSE Éducatif";
   const head="MIME-Version: 1.0\r\nTo: "+escapeHeader(order.employee.email)+
    "\r\nSubject: =?UTF-8?B?"+b64text(subject)+"?=\r\n"+
    'Content-Type: multipart/mixed; boundary="'+boundary+'"\r\n\r\n';
