@@ -299,9 +299,9 @@ cp app/maquette/backend/compose.vps.yaml compose.api.yaml
 sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
 sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --force-recreate etablissements_admin
 sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml ps
-curl -I http://127.0.0.1:8088/
+curl -s -o /dev/null -w '%{http_code}\\n' http://127.0.0.1:8088/
 ```
 
-La derniere commande doit repondre `HTTP/1.1 200 OK`.
+La derniere commande doit repondre `200` (requete GET).
 La colonne `PORTS` du panneau doit afficher
 `127.0.0.1:8088->3100/tcp`.
