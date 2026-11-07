@@ -73,7 +73,7 @@ function saveSupplier(name,category){
  try{localStorage.setItem(SUPPLIER_KEY,JSON.stringify(all))}catch(e){return false}
  return true;
 }
-async function importFiles(files,supplier,category){
+async function importFiles(files,supplier,category,variant={}){
  if(!supplier)throw new Error("Sélectionnez un fournisseur avant l'import.");
  const input=Array.from(files||[]);
  if(!input.length)throw new Error("Choisissez des fichiers PDF.");
@@ -98,6 +98,9 @@ async function importFiles(files,supplier,category){
   accepted.push({
    id:window.crypto?.randomUUID?.()||"ticket-"+Date.now()+"-"+Math.random().toString(36).slice(2),
    originalName:name,displayName:name,category, supplier,
+   variantId:variant.variantId?Number(variant.variantId):null,
+   originalVariantId:variant.variantId?Number(variant.variantId):null,
+   variantName:String(variant.variantName||""),
    status:"Libre", folder:"Libres",
    createdAt:new Date().toISOString(),soldAt:null,
    ownerId:null,ownerName:null,orderId:null,invoice:null,
