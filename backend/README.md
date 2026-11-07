@@ -688,3 +688,50 @@ d'abord le lot d'eligibilite correct. Les traces d'audit sont conservees.
 
 N'importer aucune donnee RH reelle tant que la securite, les sauvegardes
 et la conformite RGPD du traitement au Canada ne sont pas finalisees.
+
+
+## Étape 40 — Vérifier réellement l'éligibilité avec PostgreSQL, sans rien stocker
+
+Après le nettoyage de la démonstration CSV, le nouveau script
+`src/check-eligibility-e2e.js` vérifie **la vraie requête SQL**
+d'inscription avec trois identités fictives dans une transaction.
+
+Il couvre 6 situations :
+
+- aucun CSV actif : revue manuelle ;
+- une correspondance unique : éligibilité provisoire ;
+- identités identiques (même nom, prénom, établissement) : revue manuelle ;
+- identité absente du CSV : revue manuelle ;
+- bon nom dans un autre établissement : revue manuelle ;
+- établissement inconnu : revue manuelle.
+
+Le script **refuse toute opération si une liste CSV est déjà active**.
+Il utilise le même verrou PostgreSQL que l'administration des CSV pour
+éviter de perturber une activation concurrente. Toutes ses écritures
+sont annulées par `ROLLBACK`, y compris en cas d'erreur, et l'absence
+du lot fictif est vérifiée après l'annulation. Aucun compte salarié,
+mot de passe, email ni dossier d'inscription n'est créé.
+
+### Exécution dans Ubuntu sur le VPS
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/check-eligibility-e2e.js
+```
+
+Résultat attendu des tests : **101 tests réussis, zéro échec**.
+Le test réel doit renvoyer `"status":"ok"`, avec
+`"testedAgainst":"postgresql_real"`,
+`"rolledBack":true` et `"demoRosterPersisted":false`.
+
+Pour mémoire : ce contrôle est un **test de logique interne** et
+non l'ouverture des inscriptions sur le domaine public. Le parcours
+de production exige encore vérification du propriétaire de l'email,
+comptes sécurisés, authentification administrateur individuelle/MFA,
+envoi SMTP, sauvegardes restaurables et conformité RGPD pour les données
+hébergées au Canada.
