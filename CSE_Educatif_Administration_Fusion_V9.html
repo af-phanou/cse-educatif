@@ -866,9 +866,14 @@ promoUsageHTML=function(){
 };
 const v17OriginalRefreshUsage=refreshPromoUsage;
 refreshPromoUsage=function(){
- // Refresh the entire financial overview so table and summary reflect current filters.
- const panel=document.getElementById("promoUsageSummaryContainer");
- if(panel){panel.innerHTML=promoUsageHTML();return}
  v17OriginalRefreshUsage();
+ const tbody=document.getElementById("promoUsageRows");
+ const oldFooter=tbody?.closest("table")?.querySelector("tfoot");
+ if(oldFooter){
+  const temp=document.createElement("table");
+  temp.innerHTML=v17UsageFooter(matchingPromoUsage());
+  const newFooter=temp.querySelector("tfoot");
+  if(newFooter)oldFooter.replaceWith(newFooter);
+ }
 };
 </script></body></html>
