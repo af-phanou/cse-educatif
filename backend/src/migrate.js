@@ -20,6 +20,7 @@ async function main() {
   const managerPassword = readSecret(process.env.ESTABLISHMENTS_DB_PASSWORD_FILE || "/run/secrets/establishments_db_password");
   const reviewerPassword = readSecret(process.env.REVIEWER_DB_PASSWORD_FILE || "/run/secrets/registration_reviewer_db_password");
   const rosterPassword = readSecret(process.env.ROSTER_DB_PASSWORD_FILE || "/run/secrets/roster_db_password");
+  const emailVerifierPassword = readSecret(process.env.EMAIL_VERIFIER_DB_PASSWORD_FILE || "/run/secrets/email_verifier_db_password");
 
   const pool = new Pool({
     host: process.env.DB_HOST || "db",
@@ -114,6 +115,25 @@ async function main() {
       "END",
       "$role$;"
     ].join("\n"));
+    // Compte de confirmation d'adresse distinct de l'API et des admins.
+    await client.query("SELECT set_config('cse.email_role_password', $1, true)", [emailVerifierPassword]);
+    await client.query([
+      "DO $role$",
+      "BEGIN",
+      "  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cse_email_verifier') THEN",
+      "    EXECUTE format(",
+      "      'CREATE ROLE cse_email_verifier LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.email_role_password')",
+      "    );",
+      "  ELSE",
+      "    EXECUTE format(",
+      "      'ALTER ROLE cse_email_verifier WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.email_role_password')",
+      "    );",
+      "  END IF;",
+      "END",
+      "$role$;"
+    ].join("\n"));
     await client.query("GRANT CONNECT ON DATABASE cse_educatif TO cse_app");
     await client.query("CREATE SCHEMA IF NOT EXISTS cse");
     await client.query("REVOKE ALL ON SCHEMA cse FROM PUBLIC");
@@ -153,6 +173,7 @@ async function main() {
     console.log("Role cse_site_manager configure avec privileges limites.");
     console.log("Role cse_registration_reviewer configure avec privileges limites.");
     console.log("Role cse_roster_manager configure avec privileges limites.");
+    console.log("Role cse_email_verifier configure avec privileges limites.");
     console.log("Migrations appliquees :", applied.length ? applied.join(", ") : "aucune nouvelle");
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* best effort */ }
