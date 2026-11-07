@@ -99,7 +99,8 @@ async function reserve(order){
     }
     const chosen=eligible.slice(0,needed);
     for(const t of chosen){used.add(t.id);reserved.push({...t,
-      status:"Réservé",folder:"Réservés",orderId:order.id,variantId:Number(item.variantId),
+      status:"Réservé",folder:"Réservés",orderId:order.id,
+      sourceVariantId:t.originalVariantId??t.variantId??null,variantId:Number(item.variantId),
       reservedAt:new Date().toISOString(),ownerName:order.employee.first+" "+order.employee.last,
       ownerEmail:order.employee.email||"",ownerId:order.employee.employeeId??null
     })}
@@ -118,6 +119,7 @@ async function finalize(orderId,opts={}){
   throw new Error("Le paiement doit être confirmé avant délivrance.");
  const items=(order.items||[]).filter(i=>i.ticketSupplier);
  const count=items.reduce((sum,i)=>sum+Number(i.qty||0),0);
+ if(count===0)throw new Error("Cette commande ne comporte pas de billets PDF; utiliser le traitement des autres produits.");
  const result=await idbRun("readwrite",(table,ok,fail)=>{
   const req=table.getAll();
   req.onerror=()=>fail(req.error);
@@ -142,6 +144,8 @@ async function finalize(orderId,opts={}){
    ok({ids,already:sold.length,count});
   };
  });
+ const latest=getOrder(orderId);
+ if(latest?.status==="Livrée")return {order:latest,assigned:[],already:true};
  const mode=opts.auto?"auto":"manual";
  const next=updateOrder(orderId,{
   status:"Livrée",deliveredAt:new Date().toISOString(),deliveryMode:mode,
@@ -228,7 +232,7 @@ async function releaseUnpersisted(id){
    for(const t of req.result||[]){
     if(t.orderId===id&&t.status==="Réservé"){
       table.put({...t,status:"Libre",folder:"Libres",orderId:null,ownerName:null,
-        ownerEmail:null,ownerId:null,reservedAt:null,variantId:null});n++;
+        ownerEmail:null,ownerId:null,reservedAt:null,variantId:t.sourceVariantId??t.originalVariantId??null,sourceVariantId:null});n++;
     }
    }
    ok(n);
@@ -249,7 +253,7 @@ function confirmPayment(id,method){
 const isAutoEnabled=()=>{try{return localStorage.getItem(AUTO_KEY)==="true"}catch(e){return false}};
 async function paidAutoFinalize(id){
  const order=getOrder(id);
- if(!order||order.paymentStatus!=="Confirmé"||order.status==="Livrée"||!isAutoEnabled())return null;
+ if(!order||!order.items?.some(x=>x.ticketSupplier)||order.paymentStatus!=="Confirmé"||order.status==="Livrée"||!isAutoEnabled())return null;
  return finalize(id,{auto:true});
 }
 async function orderTickets(id){
