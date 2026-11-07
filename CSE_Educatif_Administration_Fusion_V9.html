@@ -776,4 +776,99 @@ validateBatchOrders=function(ids,automated){
  ids.forEach(id=>markPromoUsageConfirmed(id));
  return result;
 };
+</script>
+<style>
+.discount-col-summary{background:#eff6ff;border-top:2px solid #bdd6f3;color:#102f60}
+.discount-col-summary td{font-size:11px;font-weight:700;vertical-align:top;white-space:normal;min-width:95px}
+.discount-col-summary small{display:block;font-weight:400;color:#657991;margin-top:3px}
+.discount-number-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:10px 0 16px}
+.discount-number-overview .value{font-size:23px;font-weight:800;color:#1278cc}
+.discount-number-overview .desc{font-size:11px;color:#607590}
+@media(max-width:800px){.discount-number-overview{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<script>
+/* V17 — Totaux et indicateurs chiffrés sous chaque colonne, recalculés selon le lot sélectionné. */
+function v17DiscountScope(){
+ return discounts.filter(d=>promoBatchFilter==="Tous"||d.batchId===promoBatchFilter);
+}
+function v17Distinct(arr){return new Set(arr.filter(x=>x!==undefined && x!==null && x!=="")).size}
+function v17DaysFromToday(date){
+ if(!date)return null;
+ const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ const target=new Date(date+"T00:00:00");
+ return Math.ceil((target-today)/86400000);
+}
+function v17DiscountFooter(data){
+ const pct=data.filter(x=>x.type==="percent");
+ const euros=data.filter(x=>x.type==="fixed");
+ const totalUses=data.reduce((n,x)=>n+(Number(x.uses)||0),0);
+ const finite=data.filter(x=>Number(x.limit)>0);
+ const quota=finite.reduce((n,x)=>n+Number(x.limit),0);
+ const unlimited=data.length-finite.length;
+ const active=data.filter(x=>x.enabled).length;
+ const expired=data.filter(x=>{let n=v17DaysFromToday(x.expires);return n!==null&&n<0}).length;
+ const expiring=data.filter(x=>{let n=v17DaysFromToday(x.expires);return n!==null&&n>=0&&n<=30}).length;
+ const minAverage=data.length?data.reduce((n,x)=>n+(Number(x.minimum)||0),0)/data.length:0;
+ const pctAvg=pct.length?pct.reduce((n,x)=>n+Number(x.value||0),0)/pct.length:0;
+ const euroAvg=euros.length?euros.reduce((n,x)=>n+Number(x.value||0),0)/euros.length:0;
+ const val=(head,sub)=>'<b>'+head+'</b><small>'+sub+'</small>';
+ return '<tfoot><tr class="discount-col-summary">'+
+ '<td>'+val(data.length+' code(s)',v17Distinct(data.map(x=>x.batchId||"Hors lot"))+' lot(s) / groupe(s)')+'</td>'+
+ '<td>'+val(pct.length+' en %',pct.length?'Moy. '+pctAvg.toFixed(1)+' %':'Aucun pourcentage')+
+ '<small>'+euros.length+' en €'+(euros.length?' · moy. '+money(euroAvg):'')+'</small></td>'+
+ '<td>'+val(money(minAverage),'Minimum moyen')+'</td>'+
+ '<td>'+val(v17Distinct(data.map(x=>x.scope))+' catégorie(s)','Dont '+data.filter(x=>x.scope==="Tous").length+' toutes catégories')+'</td>'+
+ '<td>'+val(v17Distinct(data.map(x=>x.est))+' établissement(s)','Dont '+data.filter(x=>x.est==="Tous").length+' tous établissements')+'</td>'+
+ '<td>'+val(totalUses+' utilisation(s)',quota+' places limitées'+(unlimited?' · '+unlimited+' code(s) illimité(s)':''))+'</td>'+
+ '<td>'+val(expired+' expiré(s)',expiring+' expirant sous 30 jours')+'</td>'+
+ '<td>'+val(active+' actif(s)',(data.length-active)+' inactif(s)')+'</td>'+
+ '<td>'+val('Total du tableau','Lot '+(promoBatchFilter==="Tous"?"Tous":promoBatchFilter))+'</td>'+
+ '</tr></tfoot>';
+}
+const v17OriginalDiscountsView=discountsView;
+discountsView=function(){
+ const html=v17OriginalDiscountsView();
+ const data=v17DiscountScope();
+ const summary='<div class="discount-number-overview">'+
+ '<div class="card"><div class="desc">Codes du lot affiché</div><div class="value">'+data.length+'</div></div>'+
+ '<div class="card"><div class="desc">Codes actifs</div><div class="value">'+data.filter(x=>x.enabled).length+'</div></div>'+
+ '<div class="card"><div class="desc">Utilisations des codes</div><div class="value">'+data.reduce((n,x)=>n+Number(x.uses||0),0)+'</div></div>'+
+ '<div class="card"><div class="desc">Codes expirés</div><div class="value">'+data.filter(x=>{let t=v17DaysFromToday(x.expires);return t!==null&&t<0}).length+'</div></div></div>';
+ const start=html.indexOf('<table class="discount-table">');
+ const end=html.indexOf("</table>",start);
+ if(start<0||end<0)return summary+html;
+ const footer=v17DiscountFooter(data);
+ return summary+html.slice(0,end)+footer+html.slice(end);
+};
+function v17UsageFooter(data){
+ const total=data.reduce((n,x)=>n+Number(x.amount||0),0);
+ const valid=data.filter(x=>x.status==="Validée").length;
+ const applied=data.filter(x=>x.status==="Appliquée").length;
+ return '<tfoot><tr class="discount-col-summary">'+
+ '<td>'+data.length+' utilisation(s)</td>'+
+ '<td>'+v17Distinct(data.map(x=>x.code))+' code(s)</td>'+
+ '<td>'+v17Distinct(data.map(x=>x.employeeId||x.employeeName))+' salarié(s)</td>'+
+ '<td>'+v17Distinct(data.map(x=>x.establishment))+' établissement(s)</td>'+
+ '<td>'+v17Distinct(data.map(x=>x.orderId))+' commande(s)</td>'+
+ '<td>'+v17Distinct(data.map(x=>x.invoice))+' facture(s)</td>'+
+ '<td>'+money(total)+'<small>Total des remises enregistrées</small></td>'+
+ '<td>'+valid+' validée(s)<small>'+applied+' appliquée(s)</small></td>'+
+ '</tr></tfoot>';
+}
+const v17OriginalPromoUsageHTML=promoUsageHTML;
+promoUsageHTML=function(){
+ const html=v17OriginalPromoUsageHTML();
+ const data=matchingPromoUsage();
+ const start=html.indexOf("<table>");
+ const end=html.indexOf("</table>",start);
+ if(start<0||end<0)return html;
+ return html.slice(0,end)+v17UsageFooter(data)+html.slice(end);
+};
+const v17OriginalRefreshUsage=refreshPromoUsage;
+refreshPromoUsage=function(){
+ // Refresh the entire financial overview so table and summary reflect current filters.
+ const panel=document.getElementById("promoUsageSummaryContainer");
+ if(panel){panel.innerHTML=promoUsageHTML();return}
+ v17OriginalRefreshUsage();
+};
 </script></body></html>
