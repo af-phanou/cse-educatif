@@ -214,3 +214,8 @@ test("ancien lot archive peut etre reactive apres verification explicite",async(
   const audit=db.calls.find(x=>x.sql.includes("INSERT INTO cse.audit_events"));
   assert.equal(JSON.parse(audit.params[3]).reactivated,true);
 });
+
+
+test("refuse un CSV avec encodage UTF-8 illisible",()=>{
+  assert.throws(()=>analyzeCsv("nom;prenom;numero_etablissement\nDUP\uFFFDT;Alice;01\n"),/UTF-8/);
+});
