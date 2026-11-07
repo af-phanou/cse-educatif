@@ -18,7 +18,7 @@ function panel(){
  ).join("");
  return '<section id="cseSeasonPanel" class="cse-season-manager" aria-label="Personnalisation saisonnière du site public">'+
  '<div class="row" style="justify-content:space-between;align-items:center"><div><h3>Thème du site public</h3>'+
- '<p class="sub">Choisissez une seule ambiance saisonnière. Le logo CSE et la navigation restent bleu et blanc.</p></div>'+
+ '<p class="sub">Choisissez une ambiance saisonnière. Le logo reste identifiable ; les couleurs du site évoluent selon le thème.</p></div>'+
  '<span class="badge">'+escTheme(currentLabel())+'</span></div>'+
  '<div class="cse-season-options">'+previews+'</div>'+
  '<div class="cse-season-preview '+chosen.id+'"><span class="preview-symbol" aria-hidden="true">'+(chosen.symbol||"✦")+'</span>'+
