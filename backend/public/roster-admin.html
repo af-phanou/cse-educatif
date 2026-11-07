@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Import CSV salariés — Administration privée CSE Éducatif</title>
+<link rel="stylesheet" href="/csv.css">
+<script defer src="/csv.js"></script>
+</head>
+<body>
+<header><div class="shell topbar"><strong>✦ CSE Éducatif</strong><span>Import privé des listes d'éligibilité</span></div></header>
+<main class="shell">
+  <h1>Import mensuel du CSV salariés</h1>
+  <p class="notice"><strong>Environnement de préparation.</strong> Aucun fichier RH réel pour le moment. Utilisez des données fictives tant que les sauvegardes, l'authentification complète et les exigences RGPD de l'hébergement au Canada ne sont pas finalisées.</p>
+  <section class="panel" id="login">
+    <h2>Déverrouiller l'import CSV</h2>
+    <p>Ce panneau est accessible uniquement via votre tunnel SSH. Son jeton est différent des jetons établissements et inscriptions.</p>
+    <label for="token">Jeton CSV privé</label>
+    <div class="inline">
+      <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Jeton secret à 64 caractères">
+      <button id="connect" type="button">Accéder</button>
+    </div>
+  </section>
+  <section id="workspace" hidden>
+    <div class="toolbar">
+      <div><h2>Lot actuellement actif</h2><p id="activeImport" class="muted">Chargement...</p></div>
+      <div class="inline"><button id="refresh" type="button" class="secondary">Actualiser</button><button id="lock" type="button" class="secondary">Verrouiller</button></div>
+    </div>
+    <section class="panel">
+      <h2>1. Prévisualiser le fichier mensuel</h2>
+      <p>Colonnes nécessaires : <code>nom;prenom;numero_etablissement</code>. Les autres colonnes sont ignorées et non conservées. Encodage UTF-8, taille maximale 2 Mio.</p>
+      <label for="file">Fichier CSV local</label>
+      <input id="file" type="file" accept=".csv,.txt,text/csv,text/plain">
+      <div class="inline actions">
+        <button id="preview" type="button">Prévisualiser</button>
+        <button id="demo" type="button" class="secondary">Essayer un exemple fictif</button>
+        <button id="clear" type="button" class="secondary">Effacer le fichier</button>
+      </div>
+      <div class="result" id="previewResult" hidden>
+        <h3>Résumé de prévisualisation</h3>
+        <div id="stats"></div>
+        <div id="establishments" class="muted"></div>
+        <p class="warning" id="duplicateWarning" hidden>Attention : des personnes partagent le même nom, prénom et établissement. Elles devront être contrôlées manuellement lors de l'inscription.</p>
+        <button id="stage" type="button" disabled>Importer ce fichier en attente</button>
+        <p class="muted" id="demoWarning" hidden>Exemple intégré : prévisualisation uniquement, aucun import possible. Pour tester l'enregistrement, chargez un CSV fictif local.</p>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>2. Gérer les lots importés</h2>
+      <p class="muted">Un seul lot peut être actif. L'activation archive automatiquement le lot précédent ; les salariés absents du nouveau fichier ne sont plus reconnus pour une nouvelle inscription. Aucun compte existant n'est désactivé par cette opération.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Importé le</th><th>Empreinte</th><th>Salariés</th><th>Statut</th><th>Action</th></tr></thead>
+          <tbody id="imports"></tbody>
+        </table>
+      </div>
+      <p id="noImports" class="muted" hidden>Aucun lot CSV n'a été importé.</p>
+    </section>
+  </section>
+  <p id="message" role="status" aria-live="polite"></p>
+</main>
+</body>
+</html>
