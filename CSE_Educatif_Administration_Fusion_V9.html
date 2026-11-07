@@ -292,4 +292,55 @@ return heading("Éditeur de pages","Créez des pages et composez-les par glisser
 };
 function cmsDrop(ev,index){ev.preventDefault();let data=ev.dataTransfer.getData("text/plain");if(data.startsWith("new:"))cmsAddBlock(data.slice(4),index);else if(data.startsWith("move:")){let from=+data.slice(5),a=cmsGetBlocks();if(from===index)return;let b=a.splice(from,1)[0];let target=from<index?index-1:index;a.splice(target,0,b);cmsSelectedBlock=target;render()}}
 function cmsSaveBuilder(){let a=cmsGetBlocks();let hero=a.find(b=>b.type==="hero"||b.type==="heading");if(hero)pages[cmsIndex].title=hero.title;let body=a.find(b=>b.type==="text"||b.type==="hero");if(body)pages[cmsIndex].body=body.text;toast("Page enregistrée pour cette session de démonstration")}
+</script>
+<style>
+.cse-featuregrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cse-feature{border:1px solid #dce6f3;border-radius:10px;padding:12px}.cse-feature small{display:block;color:#607891}.cse-feature s{color:#8897a9}.cse-feature strong{color:#1278cc;float:right}
+</style>
+<script>
+/* Fusion V12 — catalogue et CMS partagés avec le site public */
+const SHARED_PAGES="cse_fusion_v12_pages";
+try{let shared=JSON.parse(localStorage.getItem(SHARED_PAGES));if(shared&&Array.isArray(shared.pages)&&shared.blocks){pages=shared.pages;cmsBlocksByPage=shared.blocks}}catch(e){}
+function sharePages(){try{localStorage.setItem(SHARED_PAGES,JSON.stringify({pages,blocks:cmsBlocksByPage,updated:Date.now()}))}catch(e){toast("Impossible d'enregistrer les pages")}}
+const oldProductsView=productsView;
+productsView=function(){return oldProductsView().replace("<th>Catégorie</th>","<th>Catégorie / Fournisseur</th>").replace(/<td>([^<]+)<\/td><td><s class="muted">/g,function(full,cat){return full})};
+productModal=function(id){
+let p=products.find(x=>x.id===id)||{name:"",cat:categories[0]||"",supplier:"",public:0,cse:0,stock:0,unlimited:false,featured:false,longDelay:false};
+showModal('<h2>'+(id?'Modifier le produit':'Ajouter un produit')+'</h2>',
+'<div class="field"><label>Nom du produit</label><input id="pname" value="'+esc(p.name)+'"></div>'+
+'<div class="row"><div class="field"><label>Catégorie</label><select id="pcat">'+categories.map(c=>'<option '+(p.cat===c?'selected':'')+'>'+esc(c)+'</option>').join("")+'</select></div><div class="field"><label>Fournisseur / enseigne</label><input id="psupplier" value="'+esc(p.supplier||"")+'" placeholder="UGC, Kinépolis, etc."></div></div>'+
+'<div class="row"><div class="field"><label>Prix public (€)</label><input type="number" id="ppublic" min="0" step=".01" value="'+p.public+'"></div><div class="field"><label>Prix CSE (€)</label><input type="number" id="pcse" min="0" step=".01" value="'+p.cse+'"></div></div>'+
+'<div class="row"><div class="field"><label>Stock</label><input type="number" id="pstock" min="0" value="'+p.stock+'" '+(p.unlimited?'disabled':'')+'></div><label><input type="checkbox" id="punlimited" '+(p.unlimited?'checked':'')+' onchange="document.getElementById(\'pstock\').disabled=this.checked"> Stock illimité</label></div>'+
+'<p><label><input type="checkbox" id="pfeatured" '+(p.featured?'checked':'')+'> ⭐ Mettre ce produit en avant sur l’accueil</label></p>'+
+'<p><label><input type="checkbox" id="plongdelay" '+(p.longDelay?'checked':'')+'> ⏳ Délai fournisseur plus important</label></p>'+
+'<button class="btn primary" onclick="saveProduct('+(id||0)+')">Enregistrer le produit</button>')
+};
+saveProduct=function(id){
+let p=products.find(x=>x.id===id);let name=document.getElementById("pname").value.trim(),supplier=document.getElementById("psupplier").value.trim(),pub=Number(document.getElementById("ppublic").value),cse=Number(document.getElementById("pcse").value),stock=Number(document.getElementById("pstock").value),unlimited=document.getElementById("punlimited").checked;
+if(!name||!supplier||!Number.isFinite(pub)||!Number.isFinite(cse)||pub<0||cse<0||(!unlimited&&(!Number.isInteger(stock)||stock<0))){toast("Veuillez remplir les champs et le fournisseur");return}
+let data={name,supplier,cat:document.getElementById("pcat").value,public:pub,cse,stock:unlimited?0:stock,unlimited,featured:document.getElementById("pfeatured").checked,longDelay:document.getElementById("plongdelay").checked};
+if(p)Object.assign(p,data);else products.push({id:Math.max(0,...products.map(p=>p.id))+1,...data});
+csePersist();closeModal();render();toast("Produit enregistré : visible sur le site salarié");
+};
+const originalRenderBlock=cmsRenderBlock;
+cmsRenderBlock=function(b){
+if(b.type==="featured"){let n=Math.min(8,Math.max(1,Number(b.limit)||8));return '<div style="padding:15px"><h2>'+esc(b.title||"Nos offres à la une")+'</h2><div class="cse-featuregrid">'+products.filter(p=>p.featured).slice(0,n).map(p=>'<div class="cse-feature"><b>'+esc(p.name)+'</b><small>'+esc(p.supplier||"Fournisseur")+'</small><s>'+money(p.public)+'</s> <strong>'+money(p.cse)+'</strong></div>').join("")+'</div></div>'}
+return originalRenderBlock(b)
+};
+cmsBlockTypes.push(["featured","★","Produits mis en avant"]);
+const originalCmsGetBlocks=cmsGetBlocks;
+cmsGetBlocks=function(){let k=pages[cmsIndex]?.name;let a=originalCmsGetBlocks();if(k==="Accueil"&&!a.some(b=>b.type==="featured"))a.push({type:"featured",title:"Nos offres à la une",limit:8,id:Date.now()});return a};
+const originalCmsEditorFields=cmsEditorFields;
+cmsEditorFields=function(b){if(b&&b.type==="featured")return '<h3>Produits à la une</h3><div class="field"><label>Titre</label><input value="'+esc(b.title||"")+'" oninput="cmsSetBlockField(\'title\',this.value)"></div><div class="field"><label>Nombre de produits (maximum 8)</label><select onchange="cmsSetBlockField(\'limit\',Number(this.value))">'+[2,4,6,8].map(n=>'<option '+(Number(b.limit)===n?'selected':'')+'>'+n+'</option>').join("")+'</select></div><p class="small muted">Les produits étoilés dans le catalogue s'affichent en deux colonnes.</p>';return originalCmsEditorFields(b)};
+const originalCmsSave=cmsSaveBuilder;
+cmsSaveBuilder=function(){originalCmsSave();sharePages();toast("Page enregistrée et publiée dans le navigateur")};
+const origAddPage=cmsAddPage;
+cmsAddPage=function(){origAddPage();sharePages()};
+const origAddBlock=cmsAddBlock;
+cmsAddBlock=function(type,index){origAddBlock(type,index);sharePages()};
+const origRemoveBlock=cmsRemoveBlock;
+cmsRemoveBlock=function(i){origRemoveBlock(i);sharePages()};
+const origMoveBlock=cmsMoveBlock;
+cmsMoveBlock=function(i,d){origMoveBlock(i,d);sharePages()};
+const originalDropBlock=cmsDrop;
+cmsDrop=function(e,i){originalDropBlock(e,i);sharePages()};
 </script></body></html>
