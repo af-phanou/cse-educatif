@@ -7,6 +7,7 @@ RUN npm install --omit=dev --ignore-scripts --no-audit --no-fund \
     && npm cache clean --force
 
 COPY src/ ./src/
+COPY test/ ./test/
 COPY migrations/ ./migrations/
 USER node
 EXPOSE 3000
