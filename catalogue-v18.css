@@ -1,0 +1,49 @@
+/* CSE Éducatif — Catalogue V18, bleu institutionnel et blanc */
+.c18-main{color:#142d4e}.c18-top{display:flex;justify-content:space-between;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.c18-top h1{margin:0;font-size:26px}.c18-top p,.c18-variant-head p{color:#657891;margin:4px 0}
+.c18-buttons,.c18-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c18-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:20px}
+.c18-categories{border:1px solid #d8e4f3;border-radius:13px;background:#fff;padding:12px;align-self:start;display:grid;gap:6px}
+.c18-categories>b{padding:7px 10px}.c18-categories button{display:flex;justify-content:space-between;text-align:left;gap:10px;border:0;border-radius:7px;background:transparent;padding:10px;color:#1b3b60}
+.c18-categories button.active{background:#e7f2ff;color:#0f2660;font-weight:700}.c18-categories small{color:#6a7b90}
+.c18-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.c18-toolbar input{flex:1;min-width:180px;border:1px solid #c4d6e9;padding:11px;border-radius:9px}
+.c18-info{color:#698098;font-size:12px}.c18-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.c18-card{border:1px solid #d8e4f3;border-radius:15px;background:white;overflow:hidden;display:grid;grid-template-columns:130px minmax(0,1fr);box-shadow:0 3px 15px #0f26600c}
+.c18-image{background:#f0f6ff;display:flex;align-items:center;justify-content:center;padding:12px}.c18-image img{width:100%;height:120px;object-fit:contain}
+.c18-placeholder{color:#2c75b4;display:grid;gap:6px;justify-items:center;font-size:30px}.c18-placeholder span{font-size:10px;color:#7991a5}
+.c18-card-body{padding:17px}.c18-category{display:inline-block;color:#1278cc;font-size:11px;font-weight:700}
+.c18-card-body h3{margin:6px 0;font-size:18px}.c18-card-body p{font-size:12px;color:#718398;margin:2px 0 10px}
+.c18-line{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12px}.c18-line span{color:#0c70c4}
+.c18-variants{padding:9px 0}.c18-variants>div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e9eff6;padding:5px 0;font-size:12px}
+.c18-variants b{color:#0b66ad}.c18-editbtn{width:100%;margin-top:8px}
+.c18-overlay{position:fixed;inset:0;background:#081f40c2;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
+.c18-dialog{width:min(1150px,100%);max-height:94vh;overflow:auto;background:white;border-radius:17px;padding:24px;color:#172e4e;box-shadow:0 24px 80px #001b3c50}
+.c18-dialog h2{font-size:23px;margin:0 0 8px}.c18-dialog h3{margin:0 0 7px}.c18-editor-head,.c18-variant-head,.c18-editor-foot{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.c18-editor-head{margin-bottom:18px}.c18-editor-head p{color:#667f96;margin:0}
+.c18-editcols{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px;margin:16px 0 25px}
+.c18-upload{background:#f4f8fe;border-radius:12px;padding:13px}.c18-largeimage{height:170px;display:grid;place-items:center;background:white;border:1px dashed #bfd5eb;border-radius:9px;overflow:hidden}
+.c18-largeimage img{max-width:100%;max-height:100%;object-fit:contain}.c18-largeimage .c18-placeholder{font-size:35px}
+.c18-uploadbtn{margin-top:12px;display:block;text-align:center;cursor:pointer}.c18-fields{display:grid;gap:13px}
+.c18-field{display:grid;gap:6px;flex:1}.c18-field label{font-size:12px;font-weight:700}
+.c18-field input,.c18-field textarea,.c18-field select,.c18-row input{border:1px solid #c8d9ea;border-radius:8px;padding:10px;width:100%;font:inherit}
+.c18-field textarea{min-height:75px;resize:vertical}.c18-check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.c18-variant-head{border-top:1px solid #dfe8f4;padding-top:20px;margin-bottom:13px}.c18-tablewrap{overflow:auto}
+.c18-table{width:100%;border-collapse:collapse;min-width:870px}.c18-table th{background:#edf4fc;text-align:left;font-size:10px;color:#647d94;letter-spacing:.3px}
+.c18-table th,.c18-table td{padding:9px;border-bottom:1px solid #e4ebf4}.c18-table input[type=number],.c18-table input:not([type]){border:1px solid #c8d9eb;border-radius:7px;padding:8px;width:100%;min-width:80px}.c18-table input[type=checkbox]{width:18px;height:18px;accent-color:#1278cc}
+.c18-editor-foot{border-top:1px solid #e4ecf5;padding-top:17px;margin-top:22px}.c18-catlist>div{display:flex;align-items:center;gap:9px;justify-content:space-between;border-bottom:1px solid #e8eff7;padding:10px 0}
+.c18-catlist>div span{flex:1}.c18-row input{flex:1}
+.c18-public-filter{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:17px 0}.c18-public-filter input{flex:1;min-width:180px;border:1px solid #c6daed;border-radius:9px;padding:11px}
+.c18-public-cats{display:flex;gap:7px;flex-wrap:wrap}.c18-public-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.c18-public-product{background:white;border:1px solid #dce6f3;border-radius:14px;display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;padding:19px}
+.c18-public-visual{display:flex;justify-content:center;align-items:center;background:#f2f7fe;border-radius:11px;min-height:125px;padding:10px}
+.c18-public-img{width:100%;height:145px;object-fit:contain}.c18-public-placeholder{font-size:44px;color:#156db3}
+.c18-public-detail h3{font-size:19px;margin:4px 0}.c18-public-detail p{font-size:12px;color:#677a91}
+.c18-public-detail label{font-size:12px;font-weight:700}.c18-public-detail select{width:100%;padding:10px;border-radius:8px;border:1px solid #bed2e6;margin:8px 0}
+.c18-prices{display:flex;gap:12px;align-items:baseline;margin:9px 0}.c18-prices s{color:#899caf}.c18-prices b,.c18-newprice{font-size:22px;color:#1278cc}
+.c18-public-delay{display:inline-block;background:#fff1d8;color:#956000;padding:5px 9px;border-radius:15px;font-size:12px}
+.c18-public-featured-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.c18-public-featured{border:1px solid #dce6f3;border-radius:13px;padding:17px;background:white}
+.c18-public-featured img{max-height:120px}.c18-public-featured h3{margin:10px 0 5px}.c18-public-featured p{font-size:12px;color:#6f8192}
+@media(max-width:1050px){.c18-product-grid,.c18-public-products{grid-template-columns:1fr}}
+@media(max-width:700px){.c18-layout,.c18-editcols,.c18-card,.c18-public-product,.c18-public-featured-grid{grid-template-columns:1fr}.c18-image img{height:140px}.c18-dialog{padding:15px}.c18-categories{display:flex;overflow:auto}}
