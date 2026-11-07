@@ -236,3 +236,15 @@ body[data-cse-theme="halloween"] .footer{background:#261d2d;color:#f5e6dd}
   transform:none;
  }
 }
+
+@media(min-width:780px){
+ body:is([data-cse-theme="christmas"],[data-cse-theme="halloween"]) .hero > div:first-child:not(.cse-v24-visual){
+  max-width:66%;
+ }
+}
+body:is([data-cse-theme="christmas"],[data-cse-theme="halloween"]) :is(
+ .c18-public-product select,.c18-public-filter input,.toolbar input,.toolbar select
+):focus-visible{
+ outline:3px solid var(--celebration-accent);
+ outline-offset:2px;
+}
