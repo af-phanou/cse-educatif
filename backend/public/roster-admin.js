@@ -120,9 +120,10 @@
       if(!csvText)throw Error("Le fichier est vide.");
       $("preview").disabled=true;
       const data=await api("/api/preview","POST",{csv:csvText});
+      const groupe = data.ambiguousGroups===1 ? "groupe" : "groupes";
+      const repetitions = data.duplicateRows===1 ? "ligne répétée" : "lignes répétées";
       $("stats").textContent=data.rows+" lignes · Identités identiques à vérifier : "+
-        data.ambiguousGroups+" groupe(s), "+data.duplicateRows+
-        " ligne(s) répétée(s).";
+        data.ambiguousGroups+" "+groupe+" ("+data.duplicateRows+" "+repetitions+").";
       $("establishments").textContent="Répartition par établissement : "+
         data.establishments.map(x=>x.code+" ("+x.count+")").join(", ")+
         ". Aucune autre colonne n'est stockée.";
