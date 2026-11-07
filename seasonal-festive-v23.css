@@ -1,0 +1,162 @@
+/* CSE Éducatif V23 — Éditions festives Noël / Halloween.
+   L'identité CSE reste inchangée lorsque le thème est désactivé. */
+body[data-cse-theme="christmas"],
+body[data-cse-theme="halloween"]{
+ --celebration-main:#bd202c;
+ --celebration-dark:#12543e;
+ --celebration-accent:#e7c477;
+ --celebration-soft:#fff7ec;
+ --celebration-ink:#233e34;
+ --blue:var(--celebration-main);
+ --light:var(--celebration-soft);
+ --line:#e5ded2;
+ --txt:var(--celebration-ink);
+ background:var(--celebration-soft);
+ color:var(--celebration-ink);
+ transition:background .3s ease,color .3s ease;
+}
+body[data-cse-theme="halloween"]{
+ --celebration-main:#eb780e;
+ --celebration-dark:#22152f;
+ --celebration-accent:#9c58bd;
+ --celebration-soft:#fff4e8;
+ --celebration-ink:#261b32;
+ --blue:var(--celebration-main);
+ --light:var(--celebration-soft);
+ --line:#ecd9c7;
+ --txt:var(--celebration-ink);
+ background:var(--celebration-soft);
+}
+body[data-cse-theme="christmas"] .top{
+ background:linear-gradient(105deg,#083f32 0%,#17624a 55%,#0d4938 100%);
+ border-bottom:4px solid #d5ad5f;
+ box-shadow:0 3px 20px #19462a35;
+}
+body[data-cse-theme="halloween"] .top{
+ background:linear-gradient(100deg,#161027,#372043 58%,#23152e);
+ border-bottom:4px solid #ff9321;
+ box-shadow:0 3px 20px #23152e50;
+}
+body[data-cse-theme="christmas"] .top .brand,
+body[data-cse-theme="halloween"] .top .brand{color:#fff}
+body[data-cse-theme="christmas"] .top button,
+body[data-cse-theme="halloween"] .top button,
+body[data-cse-theme="halloween"] .cse-public-admin-link,
+body[data-cse-theme="christmas"] .cse-public-admin-link{border-color:#ffffff85;background:#ffffff10;color:white}
+body[data-cse-theme="christmas"] #nav{
+ background:#fffaf0;border-bottom:2px solid #d5ad5f;
+ box-shadow:0 5px 16px #4f3e1e15;
+}
+body[data-cse-theme="halloween"] #nav{
+ background:#2c1d38;border-bottom:3px solid #eb780e;
+ box-shadow:0 5px 18px #15091a35;
+}
+body[data-cse-theme="christmas"] #nav button{color:#0b5a44;font-weight:700}
+body[data-cse-theme="halloween"] #nav button{color:#fff0dc;font-weight:700}
+body[data-cse-theme="christmas"] #nav button.active,
+body[data-cse-theme="christmas"] #nav button:hover{background:#b6212d;color:#fff}
+body[data-cse-theme="halloween"] #nav button.active,
+body[data-cse-theme="halloween"] #nav button:hover{background:#eb780e;color:#21142e}
+body[data-cse-theme="christmas"] .hero{
+ background:radial-gradient(circle at 80% 10%,#da4d48 0,transparent 35%),linear-gradient(120deg,#a81927,#d33d36 52%,#12604a 100%)!important;
+ border:3px solid #e6c57c;
+ box-shadow:0 15px 45px #a4243050, inset 0 0 0 6px #ffffff10;
+ min-height:275px;
+}
+body[data-cse-theme="halloween"] .hero{
+ background:radial-gradient(circle at 85% 16%,#fa9433 0,#e97312 19%,transparent 21%),linear-gradient(110deg,#25142f 8%,#42254c 54%,#713316 100%)!important;
+ border:3px solid #f79024;
+ box-shadow:0 18px 48px #29153255,inset 0 0 60px #fd92221c;
+ min-height:275px;
+}
+body[data-cse-theme="christmas"] .hero h1{font-weight:850;text-shadow:0 2px 10px #73192775}
+body[data-cse-theme="halloween"] .hero h1{text-shadow:0 3px 0 #251628,0 0 22px #ed741d7a;letter-spacing:.1px}
+body[data-cse-theme="christmas"] .hero .btn{color:#124d39;border:2px solid #dfbd6c;background:#fff7df;box-shadow:0 4px 0 #dab566}
+body[data-cse-theme="halloween"] .hero .btn{color:#24162e;background:#ffc06c;border:2px solid #ff9828;box-shadow:0 4px 0 #aa4d17}
+body[data-cse-theme="christmas"] .btn.primary,
+body[data-cse-theme="christmas"] .filtertag.active{background:#b91f30!important;border-color:#b91f30!important;color:#fff!important}
+body[data-cse-theme="halloween"] .btn.primary,
+body[data-cse-theme="halloween"] .filtertag.active{background:#ec7711!important;border-color:#bd570b!important;color:#281529!important}
+body[data-cse-theme="christmas"] .section h2,
+body[data-cse-theme="christmas"] .section>h2{color:#125640}
+body[data-cse-theme="halloween"] .section h2,
+body[data-cse-theme="halloween"] .section>h2{color:#391d45}
+body[data-cse-theme="christmas"] .section>h2{border-left:6px solid #bf2835;padding-left:13px}
+body[data-cse-theme="halloween"] .section>h2{border-left:6px solid #eb780e;padding-left:13px}
+body[data-cse-theme="christmas"] .card,
+body[data-cse-theme="christmas"] .c18-public-product,
+body[data-cse-theme="christmas"] .c18-public-featured,
+body[data-cse-theme="christmas"] .cse-featured,
+body[data-cse-theme="christmas"] .store-card{
+ border:1px solid #d5b975;box-shadow:0 8px 20px #5d46251a;
+ background:linear-gradient(165deg,#fffefa,#fff9ed);
+}
+body[data-cse-theme="halloween"] .card,
+body[data-cse-theme="halloween"] .c18-public-product,
+body[data-cse-theme="halloween"] .c18-public-featured,
+body[data-cse-theme="halloween"] .cse-featured,
+body[data-cse-theme="halloween"] .store-card{
+ border:1px solid #eb9e54;box-shadow:0 8px 22px #5b2d3d22;
+ background:linear-gradient(145deg,#fffaf4,#ffefd9);
+}
+body[data-cse-theme="christmas"] .c18-public-featured,
+body[data-cse-theme="christmas"] .c18-public-product,
+body[data-cse-theme="halloween"] .c18-public-featured,
+body[data-cse-theme="halloween"] .c18-public-product,
+body[data-cse-theme="christmas"] .card,
+body[data-cse-theme="halloween"] .card{transition:transform .23s ease,box-shadow .23s ease}
+body[data-cse-theme="christmas"] .card:hover,
+body[data-cse-theme="halloween"] .card:hover,
+body[data-cse-theme="christmas"] .c18-public-featured:hover,
+body[data-cse-theme="halloween"] .c18-public-featured:hover{transform:translateY(-4px);box-shadow:0 13px 32px #30192326}
+body[data-cse-theme="christmas"] .price strong,
+body[data-cse-theme="christmas"] .c18-prices b,
+body[data-cse-theme="christmas"] .c18-newprice,
+body[data-cse-theme="christmas"] .c18-public-detail strong{color:#b71f2f}
+body[data-cse-theme="halloween"] .price strong,
+body[data-cse-theme="halloween"] .c18-prices b,
+body[data-cse-theme="halloween"] .c18-newprice,
+body[data-cse-theme="halloween"] .c18-public-detail strong{color:#c65b09}
+body[data-cse-theme="christmas"] .art,
+body[data-cse-theme="christmas"] .c18-public-visual{background:radial-gradient(circle,#fffef4,#e4f3e5)}
+body[data-cse-theme="halloween"] .art,
+body[data-cse-theme="halloween"] .c18-public-visual{background:radial-gradient(circle,#ffdfae,#e9d4e9)}
+body[data-cse-theme="christmas"] .pill{background:#eff8ee;color:#13533d}
+body[data-cse-theme="halloween"] .pill{background:#ffe7c4;color:#7e3912}
+body[data-cse-theme="halloween"] .footer{background:#25182f;color:#f5daba}
+body[data-cse-theme="christmas"] .footer{background:#12543e;color:#fff7e5}
+body[data-cse-theme="christmas"] a:focus-visible,
+body[data-cse-theme="halloween"] a:focus-visible{outline:3px solid #e8b64f;outline-offset:2px}
+/* Larger, original vector ornaments, never intercept clicks. */
+.cse-festive-overlay,.cse-festive-banner,.cse-festive-header,.cse-festive-hero-art{pointer-events:none!important}
+.cse-festive-overlay{position:fixed;inset:0;z-index:7;overflow:hidden}
+.cse-festive-header{position:absolute;inset:0;overflow:hidden;z-index:0;opacity:.7}
+.cse-festive-header .cse-ornament{position:absolute;height:56px;width:56px;top:3px;right:9%;filter:drop-shadow(0 4px 5px #0002)}
+.cse-festive-hero-art{position:absolute;right:10px;bottom:4px;width:clamp(155px,24vw,310px);height:clamp(155px,24vw,290px);z-index:0;opacity:.93}
+.cse-festive-hero-art svg{width:100%;height:100%;filter:drop-shadow(0 8px 14px #0003)}
+.cse-festive-hero-art .float-ghost{animation:cse-ghost-float 4.3s ease-in-out infinite alternate;transform-origin:center}
+.cse-festive-hero-art .swing-ornament{animation:cse-ornament-swing 4s ease-in-out infinite alternate;transform-origin:50% 0}
+.cse-festive-hero-art .star-twinkle{animation:cse-glow 2.5s ease-in-out infinite alternate}
+@keyframes cse-ghost-float{from{transform:translateY(5px) rotate(-3deg)}to{transform:translateY(-14px) rotate(4deg)}}
+@keyframes cse-ornament-swing{from{transform:rotate(-5deg)}to{transform:rotate(6deg)}}
+@keyframes cse-glow{from{opacity:.3;transform:scale(.85)}to{opacity:1;transform:scale(1.15)}}
+.cse-season-festive-particle{position:fixed;left:var(--x);top:-14vh;opacity:0;font-size:var(--size);animation:cse-season-fall var(--duration) linear var(--delay) infinite;will-change:transform,opacity}
+body[data-cse-theme="halloween"] .cse-season-festive-particle{filter:drop-shadow(0 2px 3px #29122a75)}
+.cse-festive-banner{position:relative;border-radius:14px;margin:14px auto 20px;max-width:1180px;background:linear-gradient(100deg,#b82836,#0d6149);padding:13px 20px;color:white;text-align:center;border:1px solid #ecc87c;box-shadow:0 7px 17px #b8283626;font-weight:760;font-size:15px}
+body[data-cse-theme="halloween"] .cse-festive-banner{background:linear-gradient(100deg,#2d1739,#eb780e,#341737);border-color:#ffa43c;box-shadow:0 7px 20px #9d480d35}
+.cse-festive-banner small{display:block;font-size:12px;opacity:.93;letter-spacing:.3px}
+body[data-cse-theme="christmas"] .cse-festive-banner::before,
+body[data-cse-theme="christmas"] .cse-festive-banner::after{content:"✦";margin:0 14px;color:#ffe5a4}
+body[data-cse-theme="halloween"] .cse-festive-banner::before{content:"🎃";margin-right:12px}
+body[data-cse-theme="halloween"] .cse-festive-banner::after{content:"👻";margin-left:12px}
+.cse-season-special{position:relative;isolation:isolate}
+.cse-season-special>*:not(.cse-festive-hero-art){position:relative;z-index:1}
+body[data-cse-theme="halloween"] .cse-ghost-corner{position:absolute;right:2%;top:16px;opacity:.16;font-size:65px}
+@media(max-width:950px){.cse-festive-hero-art{width:190px;height:180px;opacity:.5}.cse-festive-banner{margin:9px 14px 15px}.cse-festive-header .cse-ornament{right:4%;opacity:.5}}
+@media(max-width:600px){.cse-festive-hero-art{width:120px;height:130px;opacity:.25}.cse-festive-header{display:none}.cse-festive-banner{font-size:12px;padding:11px}.cse-festive-banner::before,.cse-festive-banner::after{display:none}.cse-season-festive-particle:nth-child(n+9){display:none}}
+@media(prefers-reduced-motion:reduce){
+ .cse-festive-overlay,.cse-season-particles{display:none!important}
+ .cse-festive-hero-art .float-ghost,.cse-festive-hero-art .swing-ornament,.cse-festive-hero-art .star-twinkle{animation:none!important}
+ body[data-cse-theme="christmas"] .card:hover,body[data-cse-theme="halloween"] .card:hover,
+ body[data-cse-theme="christmas"] .c18-public-featured:hover,body[data-cse-theme="halloween"] .c18-public-featured:hover{transform:none}
+}
