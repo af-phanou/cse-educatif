@@ -170,3 +170,10 @@ body:is([data-cse-theme="christmas"],[data-cse-theme="halloween"]) .v25-featured
  .v25-purchase-row{grid-template-columns:112px minmax(0,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.v25-product-card,.v25-card-picture .v25-photo{transition:none!important}.v25-product-card:hover{transform:none!important}}
+
+/* Visuels éditoriaux de remplacement, sans prétendre être des photos fournisseur. */
+.v25-placeholder-cinema{background:radial-gradient(circle at 43% 26%,#f9fbff,#dcebf8 75%);color:#678fb2}
+.v25-placeholder-park{background:radial-gradient(circle at 45% 27%,#fbfffe,#dceeea 75%);color:#5a9c96}
+.v25-placeholder-fresh{background:radial-gradient(circle at 43% 28%,#fffff8,#e3eed8 75%);color:#779b74}
+.v25-placeholder-sport{background:radial-gradient(circle at 45% 28%,#fcfcff,#e5e4f6 75%);color:#827aa9}
+.v25-placeholder-generic{background:radial-gradient(circle at 45% 30%,#fff,#e7eff9 75%);color:#6c93b8}
