@@ -40,7 +40,7 @@ function body(){
  '<div class="t26-summary" id="t26Summary"><div class="t26-metric"><small>PDF stockés</small><strong>…</strong></div><div class="t26-metric"><small>Billets libres</small><strong>…</strong></div><div class="t26-metric"><small>Billets vendus</small><strong>…</strong></div><div class="t26-metric"><small>Fournisseurs</small><strong>'+all.length+'</strong></div></div>'+
  '<div class="t26-layout"><section class="t26-sidebar"><h3>Catégories</h3><div class="t26-category-list">'+categories.map(c=>'<button class="'+(v26Cat===c?"selected":"")+'" onclick="cseTicketCategory('+jsArg(c)+')">'+escHtml(c)+'</button>').join("")+'</div>'+
  '<h3>Fournisseurs</h3><input type="search" class="t26-input" placeholder="Rechercher un fournisseur…" aria-label="Filtrer les fournisseurs" oninput="cseTicketFilterSuppliers(this.value)">'+
- '<div id="t26Suppliers">'+available.map(s=>cardForSupplier(s,lastTickets)).join("")||'<p>Aucun fournisseur</p>'+'</div></section>'+
+ '<div id="t26Suppliers">'+(available.map(s=>cardForSupplier(s,lastTickets)).join("")||'<p>Aucun fournisseur</p>')+'</div></section>'+
  '<section class="t26-main">'+(chosen?
  '<div class="t26-main-head"><div><div class="t26-overline">'+escHtml(chosen.category)+'</div><h2>'+escHtml(chosen.name)+'</h2><p>Les PDF importés sont conservés en « Libres » jusqu’à leur attribution.</p></div><span class="t26-badge">Mode démonstration</span></div>'+
  '<div class="t26-droparea" id="t26Drop" ondragover="event.preventDefault();this.classList.add(\'hover\')" ondragleave="this.classList.remove(\'hover\')" ondrop="cseTicketDrop(event)">'+
