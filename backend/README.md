@@ -508,3 +508,111 @@ Le nettoyage s'applique seulement a cette combinaison exacte de nom,
 prenom et adresse example.invalid. Les entrees d'audit sans donnees
 personnelles sont conservees. Ne jamais utiliser de donnees RH reelles
 pour ce test, surtout avant les mesures RGPD et sauvegardes prevues.
+
+
+## Étape 33 — Import mensuel privé du CSV d'éligibilité
+
+La migration `007_roster_manager.sql` crée `cse_roster_manager`,
+un rôle réservé aux imports. Il **n'a pas accès aux comptes salariés ni
+aux demandes d'inscription**. Il peut charger des lignes minimales
+dans `cse.roster_entries`, lire les métadonnées des lots, et
+activer un nouveau lot après confirmation.
+
+Le panneau `salaries_csv_admin` propose :
+
+- prévisualisation d'un fichier UTF-8 jusqu'à **2 Mio / 15 000 lignes** ;
+- colonnes `nom;prenom;numero_etablissement` obligatoires ;
+- autres colonnes ignorées, non stockées ;
+- décompte des doublons / homonymes et contrôle des codes d'établissement ;
+- **import en attente** sans modifier la liste actuellement active ;
+- activation manuelle du lot, qui archive le précédent en **une transaction** ;
+- présentation des dates, nombres de lignes et empreintes, jamais la
+  liste des noms / prénoms dans le tableau de bord.
+
+L'établissement est validé sur le répertoire PostgreSQL **actif**.
+Les codes restent des chaînes, pour conserver `01`, `05`, etc.
+Les homonymes sont conservés comme plusieurs lignes ; la recherche
+de correspondance lors de l'inscription les renvoie en revue manuelle.
+L'absence d'un salarié de la nouvelle liste empêche sa **nouvelle
+inscription automatique**, sans révoquer rétroactivement un compte
+déjà actif. La révocation des droits de compte sera une fonction
+distincte à sécuriser avant la production.
+
+### Sécurité du panneau
+
+Le port du VPS est lié **uniquement à `127.0.0.1:8090`**. L'interface
+est accessible depuis Windows au moyen d'un tunnel SSH vers le port
+local `18090`, et d'un nouveau jeton privé à 64 caractères.
+Le jeton est conservé uniquement dans la mémoire de l'onglet :
+pas de cookie, pas de localStorage, pas d'URL avec token.
+**Ne jamais publier 8090 dans UFW, Docker sur 0.0.0.0 ou Caddy.**
+
+Il s'agit toujours d'une interface de maintenance **provisoire**,
+sans comptes superadministrateur individuels ni MFA. En attendant les
+contrôles RGPD, notamment le transfert des données sur le VPS au
+Canada, **n'importer aucune liste RH réelle**. L'exemple intégré
+dans le panneau est uniquement prévisualisable et n'est pas importable
+par le bouton de démonstration.
+
+### Installation sur Ubuntu VPS
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+if [ ! -f secrets/roster_db_password ]; then
+  (umask 077; openssl rand -hex 32 > secrets/roster_db_password)
+fi
+if [ ! -f secrets/roster_panel_token ]; then
+  (umask 077; openssl rand -hex 32 > secrets/roster_panel_token)
+fi
+chmod 600 secrets/roster_db_password secrets/roster_panel_token
+
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build salaries_csv_admin
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml ps
+```
+
+La migration doit appliquer `007_roster_manager.sql`. Le conteneur
+`salaries_csv_admin` doit être `healthy` et publier seulement
+`127.0.0.1:8090->3102/tcp`.
+
+Vérifier les droits et l'écriture fictive annulée :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml exec -T salaries_csv_admin node src/check-roster-setup.js
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml exec -T salaries_csv_admin node src/check-roster-write.js
+curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8090/; echo
+```
+
+Les deux commandes Node doivent afficher `"status":"ok"`. Le test
+d'écriture affiche `"persisted":false`. Le contrôle HTTP donne `200`.
+
+### Tunnel depuis Windows
+
+Dans une **fenêtre PowerShell Windows**, pas dans Ubuntu :
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\id_ed25519_cse" -o ExitOnForwardFailure=yes -N -L 127.0.0.1:18090:127.0.0.1:8090 ubuntu@167.114.71.54
+```
+
+Dans Firefox, saisir **manuellement** `http://127.0.0.1:18090/`.
+Récupérer le jeton dans le terminal Ubuntu (ne jamais le partager) :
+
+```bash
+cat /srv/cse-educatif/secrets/roster_panel_token
+```
+
+### Avant un véritable import mensuel
+
+Mettre en place une sauvegarde PostgreSQL chiffrée et **testée**,
+une procédure de rétention/suppression des anciens CSV, l'authentification
+superadministrateur avec MFA et audit nominatif, l'information RH
+des salariés et une analyse des transferts de données conformément au
+RGPD pour l'hébergement au Canada. Ne jamais déposer les vrais CSV
+dans le dépôt GitHub ou dans le dossier public `site/`.
