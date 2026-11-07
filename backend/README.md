@@ -139,3 +139,60 @@ sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml
 
 La migration 002 est prevue pour etre rejouee sans modification
 lorsqu'elle a deja ete appliquee. Ne pas importer de CSV RH reel.
+
+
+## Repertoire des etablissements (migration 003)
+
+Le nouveau catalogue des etablissements est en base SQL, sans liste figee :
+
+| Code (texte) | Etablissement |
+|---|---|
+| 01 | SIEGE |
+| 05 | DAME DU ROITELET |
+| 07 | DAME LE MESNIL |
+| 08 | DAME LE RECUEIL |
+| 09 | LES TOURNESOLS |
+
+- Le code est une chaine de caracteres, avec les zeros initiaux conserves.
+- La requete privee `GET /api/etablissements` rend seulement les lieux actifs.
+- Le gabarit `public/inscription.html` contient la liste deroulante requise (remplie depuis l'API) et n'est pas publie.
+- Le bouton d'inscription est volontairement inactif tant que les sessions, mots de passe et emails ne sont pas securises.
+- La verification cote serveur refuse toute eligibilite provisoire pour un code inconnu ou desactive.
+- Les modifications sont journalisees ; une desactivation ne supprime pas l'historique.
+- La migration ajoute une future designation `superadmin` dans `administrator_grants`, sans encore ouvrir une interface d'administration web.
+
+### Installer sur le VPS existant
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build api
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+```
+
+Verifier la liste depuis le conteneur API :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml exec -T api node -e 'fetch("http://127.0.0.1:3000/api/etablissements").then(async r => console.log(r.status, await r.text()))'
+```
+
+### Gestion reservee au VPS, en attendant la connexion web du superadministrateur
+
+Un operateur disposant de l'acces SSH au VPS peut afficher, ajouter, renommer ou desactiver des etablissements. Les modifications groupées sont transactionnelles et auditees. Ne jamais publier cet outil sur Internet.
+
+Lister tous les etablissements (actifs ou non) :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/manage-establishments.js list
+```
+
+**Exemple fictif** (ne pas executer sans demander ces ajouts) :
+
+```bash
+printf '[{"code":"10","name":"NOUVEAU SITE","displayOrder":10},{"code":"11","name":"AUTRE SITE","displayOrder":11}]\n' | sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm -T --no-deps migrate node src/manage-establishments.js upsert --stdin
+```
+
+Le champ `"active":false` retire un site du menu sans le supprimer, les sites existants peuvent etre renommes avec le meme code. Seule une future application admin authentifiee doit exposer l'edition au superadministrateur ; aucune route HTTP d'ecriture n'existe.
+
+Ne pas importer de vrai CSV RH ou creer de compte tant que les protections GDPR/RGPD, notamment le traitement des donnees au Canada, les sauvegardes et les controles de session ne sont pas en place.
