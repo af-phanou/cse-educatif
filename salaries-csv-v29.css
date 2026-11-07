@@ -1,0 +1,71 @@
+/* CSE Éducatif V29 — Import mensuel des salariés (CSV).
+   Interface sobre, accessible et compatible avec l'administration existante. */
+.v29-panel{margin-bottom:20px;padding:22px!important;border:1px solid #d8e6f5!important;border-radius:15px!important;background:#fff!important;box-shadow:0 5px 22px #103c6e0a}
+.v29-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.v29-header h3{margin:5px 0 7px;color:#123464;font-size:20px;letter-spacing:-.02em}
+.v29-header p{color:#70849b;font-size:12px;line-height:1.5;margin:0}
+.v29-kicker{color:#1278cc;font-size:10px;font-weight:850;letter-spacing:.16em}
+.v29-pill{display:inline-flex;align-items:center;white-space:nowrap;background:#eaf4ff;color:#2166a3;border-radius:18px;padding:7px 12px;font-size:11px;font-weight:800}
+.v29-steps{display:flex;gap:19px;margin:21px 0 17px;flex-wrap:wrap;color:#4f6782;font-size:12px;font-weight:670}
+.v29-steps span{display:flex;gap:8px;align-items:center}
+.v29-steps b{width:23px;height:23px;border-radius:50%;background:#e7f2ff;color:#1278cc;display:grid;place-items:center;font-size:11px}
+.v29-drop{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;background:linear-gradient(115deg,#eef6ff,#fbfdff);border:2px dashed #b3cee9;border-radius:13px;padding:21px}
+.v29-drop.v29-hover{background:#ddebfc;border-color:#1278cc}
+.v29-dropicon{border:1px solid #cfdef0;background:#fff;color:#1278cc;border-radius:13px;font-weight:800;font-size:27px;display:grid;place-items:center;width:49px;height:49px}
+.v29-drop>div:nth-child(2){flex:1;min-width:180px}
+.v29-drop strong{color:#19456e;font-size:14px;display:block}
+.v29-drop p{margin:6px 0 0;color:#728ca3;font-size:11px}
+.v29-drop .btn{display:inline-flex;gap:5px;cursor:pointer;white-space:nowrap}
+.v29-instructions{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:15px;flex-wrap:wrap}
+.v29-instructions>div{display:grid;gap:6px;flex:1;min-width:180px}
+.v29-instructions b{font-size:11px;color:#24466c}
+.v29-instructions code{color:#15599a;font-weight:750;font-size:12px;padding:9px 12px;background:#edf5ff;border-radius:8px;width:fit-content;max-width:100%;overflow-wrap:anywhere}
+.v29-instructions small{color:#748da3;line-height:1.5;font-size:11px}
+.v29-last{border-top:1px solid #e6edf5;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:19px;padding-top:14px;font-size:11px;color:#647e97}
+.v29-history h3,.v29-preview h3{margin:0 0 9px;color:#153b64;font-size:18px}
+.v29-history table{border-collapse:collapse;width:100%;font-size:11px}
+.v29-history td,.v29-history th{padding:10px;border-bottom:1px solid #e9f0f7;text-align:left}
+.v29-history th{background:#edf5ff;font-size:10px;color:#5c7590}
+.v29-privacy{margin:12px 0 0;color:#7186a0;font-size:11px}
+.v29-preview{border-top:4px solid #1278cc!important}
+.v29-preview-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+.v29-preview-head p{margin:0;color:#6d8299;font-size:12px}
+.v29-scope{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:14px;margin:19px 0;background:#f4f8fd;border:1px solid #dce8f5;border-radius:11px}
+.v29-scope>label:first-child{display:grid;gap:5px;color:#254666;font-size:12px;font-weight:750}
+.v29-scope input[type=month]{padding:10px;border:1px solid #bed3e9;background:white;border-radius:8px;color:#17466e}
+.v29-absents{display:flex;align-items:flex-start;gap:9px;flex:1;min-width:230px}
+.v29-absents input{margin:4px 0 0;accent-color:#1278cc;width:18px;height:18px;flex:none}
+.v29-absents b{display:block;color:#224464;font-size:12px}
+.v29-absents small{display:block;color:#6a849f;margin-top:3px;font-size:11px;line-height:1.5}
+.v29-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:14px 0}
+.v29-stat{background:#f7faff;border:1px solid #e3ecf6;border-radius:10px;padding:13px;min-width:0}
+.v29-stat small{display:block;color:#64809c;font-size:10px;min-height:28px}
+.v29-stat strong{color:#116fbd;font-size:25px;line-height:1.2}
+.v29-stat.review strong{color:#ae6318}.v29-stat.absent strong{color:#846199}
+.v29-error{background:#fff0ef;color:#af3636;border-left:4px solid #dc5959;border-radius:6px;margin:12px 0;padding:11px 14px;font-size:12px;font-weight:650;line-height:1.55}
+.v29-warning{background:#fff6e4;color:#866128;border-left:3px solid #d9aa61;padding:10px 13px;margin:12px 0;font-size:12px;line-height:1.5;border-radius:6px}
+.v29-preview-table{width:100%;border-collapse:collapse;font-size:12px;min-width:810px}
+.v29-preview-table th{background:#ecf4fc;color:#54718b;font-size:10px;letter-spacing:.03em;text-align:left}
+.v29-preview-table th,.v29-preview-table td{padding:10px 8px;border-bottom:1px solid #e5edf6;vertical-align:middle}
+.v29-preview-table tr:nth-child(even){background:#fbfdff}
+.v29-preview-table td:nth-child(4){font-variant-numeric:tabular-nums;font-weight:750;color:#325773}
+.v29-preview-table .v29-row-review{background:#fffcf5}
+.v29-preview-table .v29-row-error{background:#fff8f6}
+.v29-status{display:inline-block;font-size:10px;font-weight:770;color:#365f88;background:#e7f3ff;border-radius:17px;padding:6px 9px;white-space:nowrap}
+.v29-status.present{color:#147554;background:#e4f7ee}
+.v29-status.new{color:#145c96;background:#e0f0ff}
+.v29-status.reactivate{color:#7c4f92;background:#f2e6fa}
+.v29-status.transfer{color:#735d19;background:#f8f1dc}
+.v29-status.review{color:#a06618;background:#fff1d5}
+.v29-status.error{color:#af3838;background:#ffe5e3}
+.v29-decision{border:1px solid #e3b16d;border-radius:8px;padding:9px;max-width:100%;min-width:210px;color:#593f25;background:#fffcf6;font-size:11px}
+.v29-note{color:#71879f;font-size:11px}
+.v29-red{color:#b13a3a;font-size:11px;font-weight:700}
+.v29-preview-footer{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;border-top:1px solid #dce8f6;margin-top:17px;padding-top:17px}
+.v29-preview-footer strong{font-size:12px;color:#224568}
+.v29-preview-footer p{color:#7e91a8;font-size:11px;margin:4px 0 0}
+.v29-preview-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v29-preview-buttons .btn:disabled{opacity:.45;cursor:not-allowed}
+.v29-managed{background:#edf7ff;color:#245c89;padding:10px 12px;border-left:3px solid #1278cc;font-size:11px;border-radius:6px}
+@media(max-width:1150px){.v29-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.v29-panel{padding:15px!important}.v29-drop{padding:15px;gap:10px}.v29-dropicon{display:none}.v29-drop .btn{width:100%;justify-content:center}.v29-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.v29-scope{padding:11px}.v29-preview-head .btn{width:100%}}
