@@ -1007,3 +1007,92 @@ publié en DNS avec `v=DMARC1; p=none`.
 **Ne jamais copier `secrets/smtp_password` dans GitHub ou dans ce chat.**
 Ce test manuel ne publie aucun port ni endpoint ; il ne remplace pas
 les contrôles de sécurité indispensables au service d'envoi automatisé.
+
+
+## Étape 52 — Notifications des décisions (file d'attente, aucun envoi)
+
+Le test SMTP Node.js -> OVHcloud -> boîte CSE a été reçu avec succès.
+Ce résultat vérifie le transport, pas encore la sécurité ou la
+délivrabilité des notifications aux salariés.
+
+La migration `009_decision_notifications.sql` complète la table
+`cse.email_outbox` avec deux modèles :
+`registration_approved` et `registration_rejected`.
+
+Quand un administrateur enregistre une approbation ou un refus
+depuis le panneau privé des inscriptions, la même transaction SQL :
+
+- met à jour le statut du dossier ;
+- ajoute une notification de décision avec `recipient_email = NULL`
+  et le statut par défaut `not_configured` ;
+- ajoute un événement d'audit.
+
+Si une des étapes échoue, toute la transaction est annulée.
+Le rôle `cse_registration_reviewer` ne peut qu'insérer ces événements,
+sans lire les autres emails ni déclencher un envoi. Une nouvelle
+décision sur un dossier déjà traité est refusée. Le panneau affiche
+que la notification est **préparée, pas envoyée**.
+
+Le futur service de distribution devra d'abord résoudre la bonne
+adresse **vérifiée** à partir du dossier, contrôler les permissions
+et les préférences légitimes, puis expédier le message avec reprise,
+limitation de débit et audit. Aucun service de distribution automatique
+n'est installé ni activé à cette étape.
+
+### Mise à jour du VPS
+
+Dans Ubuntu :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+```
+
+Nombre attendu : **141 tests réussis, zéro échec**.
+La migration doit afficher `009_decision_notifications.sql`.
+
+Tester ensuite avec deux identités entièrement fictives (sans
+enregistrer de demande ni expédier d'email) :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/check-notifications-e2e.js
+```
+
+La réponse doit contenir `"status":"ok"`,
+`"outboxEntriesCreated":2`, `"deliveryStatus":"not_configured"`,
+`"recipientAddressesStored":false`, `"rolledBack":true` et
+`"emailsSent":false`.
+
+Pour faire prendre en compte la nouvelle logique dans le panneau privé
+des inscriptions, reconstruire uniquement ce service :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build inscriptions_admin
+```
+
+### Contrôle sans données nominatives
+
+Le script suivant, exécuté uniquement depuis le VPS via SSH, affiche
+les totaux des messages préparés par audience, modèle et statut, sans
+nom, adresse ou jeton :
+
+```bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/preview-notifications.js
+```
+
+La liste peut être vide : les dossiers de démonstration précédents ont
+été nettoyés, et le test E2E utilise `ROLLBACK`.
+
+**Ne pas activer les emails aux salariés pour l'instant.**
+Les inscriptions ne sont toujours pas ouvertes au public, et les
+protections nécessaires restent à réaliser : compte administrateur
+individuel et MFA, vérification email complète, données RH importées
+dans des conditions RGPD adaptées à l'hébergement canadien,
+limitation anti-abus, sauvegardes restaurables, délivrabilité, reprise
+des notifications, politique de rétention et effacement.
