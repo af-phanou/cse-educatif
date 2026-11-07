@@ -196,3 +196,78 @@ printf '[{"code":"10","name":"NOUVEAU SITE","displayOrder":10},{"code":"11","nam
 Le champ `"active":false` retire un site du menu sans le supprimer, les sites existants peuvent etre renommes avec le meme code. Seule une future application admin authentifiee doit exposer l'edition au superadministrateur ; aucune route HTTP d'ecriture n'existe.
 
 Ne pas importer de vrai CSV RH ou creer de compte tant que les protections GDPR/RGPD, notamment le traitement des donnees au Canada, les sauvegardes et les controles de session ne sont pas en place.
+
+
+## Panneau prive d'administration des etablissements (migration 004)
+
+**Etape provisoire de maintenance : accessible uniquement depuis une session SSH**, avec jeton prive supplementaire. Ce panneau ne constitue **PAS encore**
+l'interface de production superadministrateur : sa gestion des identites,
+des sessions et des autorisations individuelles reste a developper.
+
+La migration 004 cree le role SQL `cse_site_manager`, qui n'a acces en
+lecture/ecriture qu'aux etablissements et en insertion au journal
+`cse.establishment_changes`. Aucune permission sur les listes RH ou
+les comptes salaries.
+
+L'application `etablissements_admin` tourne sur le conteneur Node.js,
+publiee sur le **seul loopback du VPS** :
+`127.0.0.1:8088:3100`. Ne jamais l'ajouter au Caddyfile public,
+ne jamais modifier le bind en `0.0.0.0`, et ne jamais ouvrir 8088
+dans UFW / pare-feu OVH.
+
+### Initialiser et demarrer
+
+Dans **Ubuntu VPS**, apres avoir mis a jour le depot :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+
+# Creer une seule fois deux secrets prives, sans les afficher
+if [ ! -f secrets/establishments_db_password ]; then
+  (umask 077; openssl rand -hex 32 > secrets/establishments_db_password)
+fi
+if [ ! -f secrets/establishments_panel_token ]; then
+  (umask 077; openssl rand -hex 32 > secrets/establishments_panel_token)
+fi
+chmod 600 secrets/establishments_db_password secrets/establishments_panel_token
+
+cp compose.api.yaml compose.api.yaml.backup
+cp app/maquette/backend/compose.vps.yaml compose.api.yaml
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build etablissements_admin
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml ps
+```
+
+Verifier que la publication affiche UNIQUEMENT
+`127.0.0.1:8088->3100/tcp` pour `etablissements_admin`, et
+que les conteneurs `db`, `api` et `web` demeurent sains.
+
+Dans **PowerShell Windows** (ouvrir une nouvelle fenetre et laisser ouverte) :
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\id_ed25519_cse" -L 8088:127.0.0.1:8088 ubuntu@167.114.71.54
+```
+
+Dans le navigateur du PC, ouvrir `http://localhost:8088/`.
+Cette liaison est chiffree par SSH entre le PC et le VPS.
+Dans le terminal prive du VPS, lire le jeton **uniquement pour
+le saisir dans le navigateur personnel**, jamais dans ce chat :
+
+```bash
+cat /srv/cse-educatif/secrets/establishments_panel_token
+```
+
+Le jeton n'est jamais enregistre en localStorage ni en cookie :
+le rechargement de la page impose une nouvelle saisie. Les operations
+de modification sont transactionnelles et ajoutees au journal.
+Le code d'un etablissement existant ne peut pas etre change, mais
+son nom, son ordre et son etat actif peuvent l'etre. L'interface accepte
+plusieurs nouveaux codes d'un coup (`code;nom;ordre`, une ligne par site).
+
+**Avant l'ouverture de l'administration sur le domaine public** :
+mettre en place comptes superadmin authentifies, MFA, sessions serveur,
+protection CSRF, audit individualise, rotation des secrets, tests de
+securite, sauvegardes testees et verification RGPD. Actuellement le
+panneau n'est utilisable que par la personne ayant l'acces SSH et le jeton.
