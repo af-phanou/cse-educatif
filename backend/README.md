@@ -1,62 +1,68 @@
-# Backend CSE Éducatif — socle privé V1
+# Backend CSE Éducatif — préparation de l'application
 
-Ce dossier marque le début de la migration de la maquette statique vers une
-application serveur. Il ne constitue **pas** une version de production.
+**Etat : infrastructure en construction, pas encore une application de production.**
+Le site public officiel reste la page de maintenance servie par Caddy.
 
-## Contenu livré
+## Ce qui existe
 
-- API Node.js (version 26) et pilote PostgreSQL (pg).
-- GET /healthz : vérifie que le processus répond.
-- GET /readyz : vérifie la connexion à PostgreSQL.
-- Aucune interface d'administration ni route de données salariés accessible.
-- Aucun port d'API publié sur l'hôte ; réseau Docker privé requis.
+- API Node.js avec /healthz (processus) et /readyz (connexion PostgreSQL).
+- Aucun endpoint pour consulter ou modifier les données personnelles, aucun port public sur l'API.
+- Conteneur de migration ponctuel : create/alter role cse_app avec un secret indépendant.
+- Le compte de l'API cse_app n'a aucun privilège de création de schémas/tables
+  et ne peut pas attribuer des droits administrateur aux comptes.
+- Migration 001 : comptes utilisateurs, demandes de revue, imports CSV d'**éligibilité**
+  et journal d'audit.
 
-## Configuration Docker Compose recommandée
+## Migration du VPS existant (sans publier la maquette)
 
-Depuis le dossier /srv/cse-educatif du VPS (où compose.yaml configure déjà la
-base et compose.override.yaml configure Caddy), créer un fichier
-compose.api.yaml avec le service suivant :
+Dans /srv/cse-educatif sur Ubuntu :
 
-```yaml
-services:
-  api:
-    build:
-      context: ./app/maquette/backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      PORT: "3000"
-      DB_HOST: db
-      DB_PORT: "5432"
-      DB_NAME: cse_educatif
-      DB_USER: cse_dbadmin
-      DB_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      - postgres_password
-    networks:
-      - cse_private
-```
+1. Mettre à jour la copie du dépôt :
+   `git -C app/maquette pull --ff-only`.
+2. Créer **une seule fois** le secret du compte applicatif :
+   `umask 077 && openssl rand -hex 32 > secrets/app_db_password`.
+   Ne jamais afficher, copier vers le chat ou commiter cette valeur.
+3. `cp app/maquette/backend/compose.vps.yaml compose.api.yaml`.
+4. Contrôler la configuration :
+   `sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml config --quiet`.
+5. Lancer la migration ponctuelle :
+   `sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --build migrate`.
+6. Après succès, recréer l'API :
+   `sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build api`.
 
-Le mot de passe est lu depuis le secret local déjà utilisé par PostgreSQL ;
-**ne jamais commiter de vrai secret**. Le fichier source est protégé (mode 600)
-sur le VPS. Le conteneur tourne en utilisateur « node » (UID 1000), qui doit
-avoir le droit de lire ce fichier monté par Docker Compose.
+Le secret de la migration est l'ancien secret de PostgreSQL ; l'API ne voit
+**que** son nouveau secret. Le compte administratif de PostgreSQL reste
+disponible uniquement pour maintenance et migrations ponctuelles.
 
-Démarrer en incluant les trois fichiers Compose :
+## Schéma de données
 
-```bash
-sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml up -d --build api
-```
+- `cse.roster_imports` : lots CSV et état (staged, active, archived).
+  Un seul lot peut être actif à la fois.
+- `cse.roster_entries` : uniquement nom, prénom et numéro
+  d'établissement provenant du CSV. Deux homonymes ne sont pas fusionnés.
+- `cse.accounts` : profils saisis volontairement par les salariés ;
+  comptes en attente de validation par défaut. Les mots de passe devront être
+  hachés (Argon2id) avant toute création réelle de compte.
+- `cse.account_reviews` : file de revue manuelle (absence de
+  correspondance, homonymies, ambiguïtés).
+- `cse.administrator_grants` : attributions administrateur que
+  l'API ne peut pas insérer ou modifier directement.
+- `cse.audit_events` : journal auquel l'API peut ajouter,
+  mais pas modifier ni supprimer d'événements.
 
-## Limitations / suite indispensable
+## Ce qui manque avant toute donnée réelle
 
-- Le compte DB actuellement utilisé pour la seule sonde de santé est un compte
-  d'administration. **Créer un rôle SQL applicatif limité** avant les
-  fonctionnalités métiers.
-- Ajouter migrations SQL, authentification/permissions, journalisation d'audit,
-  validation de formulaires, anti-abus, email, PDF privés, sauvegardes testées.
-- Ne jamais importer un vrai CSV RH tant que ces contrôles ne sont pas en place.
-- La maquette GitHub Pages continue de fonctionner localement via localStorage
-  et IndexedDB : elle n'est pas reliée à cette API.
+Authentification sécurisée, vérification des droits sur chaque route, hachage
+de mots de passe, import CSV validé/reconcilié, emails transactionnels,
+stockage privé et sauvegardes chiffrées des billets PDF, configuration et
+tests des sauvegardes, procédures RGPD pour les données hébergées au Canada,
+et gestion des incidents/supervision. Ne pas importer de vrais CSV RH à ce stade.
+La maquette HTML/JS actuelle conserve ses données en localStorage/IndexedDB,
+sans liaison avec l'API.
+
+## Sécurité
+
+Ne jamais publier un port 5432 ou 3000 ; le backend et PostgreSQL utilisent
+le réseau `cse_private`. Le dossier `secrets/` est hors du dépôt
+GitHub, en permissions restrictives. Ne jamais coller un secret dans un ticket
+GitHub, un message ou une commande visible dans les historiques de shell.
