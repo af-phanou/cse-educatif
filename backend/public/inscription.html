@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Créer mon compte — CSE Éducatif (préparation)</title>
+  <style>
+    :root { color-scheme:light; --blue:#1278cc; --navy:#0f2660; --line:#d9e4f0; --bg:#f4f7fb; }
+    *, *::before, *::after { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:#1c3152; font:16px/1.5 system-ui,Arial,sans-serif; }
+    main { max-width:660px; margin:40px auto; padding:clamp(18px,5vw,36px); background:#fff; border-radius:18px; box-shadow:0 10px 30px #0f266013; }
+    h1 { color:var(--navy); margin:0; }
+    .brand { font-weight:700; color:var(--blue); font-size:.9rem; }
+    .note { padding:12px 16px; border-left:4px solid var(--blue); background:#edf5fd; border-radius:6px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .field { margin:14px 0; }
+    label { display:block; margin-bottom:6px; font-weight:650; }
+    input,select { width:100%; min-height:44px; border:1px solid #a9bad0; border-radius:8px; padding:10px; background:#fff; color:#132943; font:inherit; }
+    select:disabled { opacity:.7; }
+    button { border:0; border-radius:9px; background:var(--navy); color:#fff; padding:14px 20px; font:inherit; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    small { color:#5e6b7a; }
+    @media(max-width:580px){main{margin:12px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <p class="brand">CSE Éducatif · Les Papillons Blancs Roubaix-Tourcoing</p>
+  <h1>Créer mon compte salarié</h1>
+  <p class="note"><strong>Formulaire en préparation.</strong> Aucune inscription n'est enregistrée et aucun email n'est envoyé à ce stade.</p>
+  <form id="registration" autocomplete="on">
+    <div class="grid">
+      <div class="field"><label for="firstName">Prénom *</label><input id="firstName" name="firstName" maxlength="120" autocomplete="given-name" required></div>
+      <div class="field"><label for="lastName">Nom *</label><input id="lastName" name="lastName" maxlength="120" autocomplete="family-name" required></div>
+    </div>
+    <div class="field">
+      <label for="establishmentNumber">Établissement auquel vous appartenez *</label>
+      <select id="establishmentNumber" name="establishmentNumber" required disabled aria-describedby="estInfo">
+        <option value="">Chargement de la liste…</option>
+      </select>
+      <small id="estInfo" role="status">Sélectionnez votre établissement dans la liste officielle du CSE.</small>
+    </div>
+    <div class="field"><label for="email">Adresse email *</label><input id="email" name="email" type="email" autocomplete="email" maxlength="254" required></div>
+    <div class="field"><label for="phone">Téléphone</label><input id="phone" name="phone" type="tel" autocomplete="tel"></div>
+    <div class="field"><label for="addressLine1">Adresse</label><input id="addressLine1" name="addressLine1" autocomplete="address-line1"></div>
+    <div class="field"><label for="addressLine2">Complément d'adresse</label><input id="addressLine2" name="addressLine2" autocomplete="address-line2"></div>
+    <div class="grid">
+      <div class="field"><label for="postalCode">Code postal</label><input id="postalCode" name="postalCode" autocomplete="postal-code"></div>
+      <div class="field"><label for="city">Ville</label><input id="city" name="city" autocomplete="address-level2"></div>
+    </div>
+    <p><small>* Champs obligatoires. La vérification d'éligibilité utilisera seulement le nom, le prénom et le code établissement du CSV mensuel.</small></p>
+    <button type="button" disabled title="Inscriptions non encore ouvertes">Créer mon compte (prochainement)</button>
+  </form>
+</main>
+<script>
+"use strict";
+(async function loadEstablishments() {
+  const select = document.getElementById("establishmentNumber");
+  const info = document.getElementById("estInfo");
+  try {
+    const response = await fetch("/api/etablissements", {cache:"no-store",credentials:"same-origin"});
+    if (!response.ok) throw new Error("Liste indisponible");
+    const data = await response.json();
+    if (!Array.isArray(data.establishments) || !data.establishments.length) {
+      throw new Error("Aucun établissement actif");
+    }
+    // Aucune valeur transmise par le navigateur n'est une preuve d'éligibilité ;
+    // la vérification côté serveur est obligatoire lors de l'inscription réelle.
+    select.replaceChildren(new Option("Sélectionnez votre établissement", ""));
+    for (const item of data.establishments) {
+      if (typeof item.code !== "string" || typeof item.name !== "string") continue;
+      select.add(new Option(item.code + " — " + item.name, item.code));
+    }
+    select.disabled = false;
+    info.textContent = "Sélection obligatoire parmi les établissements actifs.";
+  } catch (_) {
+    select.replaceChildren(new Option("Liste temporairement indisponible", ""));
+    select.disabled = true;
+    info.textContent = "Le chargement a échoué. Réessayez ultérieurement.";
+  }
+})();
+</script>
+</body>
+</html>
