@@ -159,6 +159,7 @@ async function finalize(orderId,opts={}){
 async function release(orderId){
  const order=getOrder(orderId);
  if(!order)throw new Error("Commande introuvable");
+ if(order.status==="Livrée")throw new Error("Une commande déjà livrée ne peut pas être annulée sans procédure de remboursement.");
  const result=await idbRun("readwrite",(table,ok,fail)=>{
   const req=table.getAll();
   req.onerror=()=>fail(req.error);
