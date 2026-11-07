@@ -17,7 +17,8 @@ const {
 const {
   isValidPanelToken,
   isAllowedLocalHost,
-  isAllowedMutationOrigin
+  isAllowedMutationOrigin,
+  requestPath
 } = require("./private-admin-auth");
 
 const adminToken = fs.readFileSync(
@@ -119,14 +120,15 @@ function permitted(req) {
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === "GET" && req.url === "/healthz") {
+  const pathname = requestPath(req.url);
+  if (req.method === "GET" && pathname === "/healthz") {
     return send(res, 200, {status:"alive"});
   }
   if (!isAllowedLocalHost(req.headers.host)) {
     return send(res, 403, {error:"forbidden_host"});
   }
-  if (req.method === "GET" && resources.has(req.url)) {
-    const [file, mime] = resources.get(req.url);
+  if (req.method === "GET" && resources.has(pathname)) {
+    const [file, mime] = resources.get(pathname);
     // Chemins predefinis seulement, jamais de chemin fourni par l'utilisateur.
     try {
       const data = fs.readFileSync(path.join(publicDir, file));
@@ -135,7 +137,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 503, {error:"unavailable"});
     }
   }
-  if (req.url !== "/api/sites") {
+  if (pathname !== "/api/sites") {
     return send(res, 404, {error:"not_found"});
   }
   if (req.method !== "GET" && req.method !== "PUT") {
