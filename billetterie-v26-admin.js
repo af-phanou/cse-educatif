@@ -171,6 +171,36 @@ window.cseTicketChoose=choose;
 window.cseTicketUpdateOrder=updateOrder;
 window.cseTicketAssignOrder=assign;
 window.cseTicketDownload=download;
+
+/* Raccourci depuis la commande vers l'attribution de billets PDF. */
+function fromOrder(id){
+ const order=orders.find(x=>x.id===id);
+ if(!order)return;
+ const supplier=orderSupplier(order);
+ if(!supplier){toast("Cette commande n'est pas identifiée comme une commande de billetterie.");return}
+ v26Cat="Toutes";v26Supplier=supplier;v26Folder="Libres";
+ closeModal();
+ navigate("tickets");
+ const dropdown=document.getElementById("t26Order");
+ if(dropdown){dropdown.value=id;updateOrder()}
+}
+window.cseTicketFromOrder=fromOrder;
+if(typeof openOrder==="function"){
+ const priorOpenOrderTicketV26=openOrder;
+ openOrder=function(id){
+  priorOpenOrderTicketV26(id);
+  const order=orders.find(x=>x.id===id);
+  if(!order||!orderSupplier(order))return;
+  const container=document.querySelector(".modal");
+  if(!container||document.getElementById("cseOrderTicketLinkV26"))return;
+  const box=document.createElement("div");
+  box.id="cseOrderTicketLinkV26";
+  box.className="note";
+  box.innerHTML='<b>Billetterie PDF</b><p class="small muted">Les billets de cette commande seront renommés et classés dans « Vendu » après attribution à un salarié.</p>'+
+   '<button class="btn primary" onclick="cseTicketFromOrder('+JSON.stringify(id).replace(/"/g,"&quot;")+')">▧ Ouvrir l’attribution des billets PDF</button>';
+  container.appendChild(box);
+ };
+}
 ticketsView=view;
 window.addEventListener("storage",e=>{
  if(e.key===store.SUPPLIER_KEY&&typeof route!=="undefined"&&route==="tickets")render();
