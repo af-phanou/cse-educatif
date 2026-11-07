@@ -17,6 +17,7 @@ function readSecret(file) {
 async function main() {
   const adminPassword = readSecret(process.env.DB_ADMIN_PASSWORD_FILE || "/run/secrets/postgres_password");
   const appPassword = readSecret(process.env.APP_DB_PASSWORD_FILE || "/run/secrets/app_db_password");
+  const managerPassword = readSecret(process.env.ESTABLISHMENTS_DB_PASSWORD_FILE || "/run/secrets/establishments_db_password");
 
   const pool = new Pool({
     host: process.env.DB_HOST || "db",
@@ -54,6 +55,25 @@ async function main() {
       "$role$;"
     ].join("\n"));
 
+    // Compte d'edition limite aux etablissements, reserve au panneau SSH.
+    await client.query("SELECT set_config('cse.site_role_password', $1, true)", [managerPassword]);
+    await client.query([
+      "DO $role$",
+      "BEGIN",
+      "  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'cse_site_manager') THEN",
+      "    EXECUTE format(",
+      "      'CREATE ROLE cse_site_manager LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.site_role_password')",
+      "    );",
+      "  ELSE",
+      "    EXECUTE format(",
+      "      'ALTER ROLE cse_site_manager WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOINHERIT PASSWORD %L',",
+      "      current_setting('cse.site_role_password')",
+      "    );",
+      "  END IF;",
+      "END",
+      "$role$;"
+    ].join("\n"));
     await client.query("GRANT CONNECT ON DATABASE cse_educatif TO cse_app");
     await client.query("CREATE SCHEMA IF NOT EXISTS cse");
     await client.query("REVOKE ALL ON SCHEMA cse FROM PUBLIC");
@@ -90,6 +110,7 @@ async function main() {
     }
     await client.query("COMMIT");
     console.log("Role cse_app configure avec privileges limites.");
+    console.log("Role cse_site_manager configure avec privileges limites.");
     console.log("Migrations appliquees :", applied.length ? applied.join(", ") : "aucune nouvelle");
   } catch (error) {
     try { await client.query("ROLLBACK"); } catch { /* best effort */ }
