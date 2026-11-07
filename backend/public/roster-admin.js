@@ -63,16 +63,18 @@
       status.textContent=({active:"Actif",staged:"À activer",archived:"Archivé"})[item.status]||"Inconnu";
       statusCell.append(status);tr.append(statusCell);
       const action=document.createElement("td");
-      if(item.status==="staged"){
+      if(item.status==="staged" || item.status==="archived"){
         const activate=document.createElement("button");
         activate.type="button";
-        activate.textContent="Activer ce lot";
+        activate.textContent=item.status==="archived"?"Réactiver ce lot":"Activer ce lot";
         activate.addEventListener("click",async()=>{
           const confirmation=prompt(
             "L'activation archive le précédent CSV actif. Les personnes absentes "+
             "du nouveau CSV ne seront plus reconnues comme éligibles pour une nouvelle inscription. "+
             "Aucun compte existant ne sera automatiquement désactivé. "+
-            "Pour confirmer, saisissez ACTIVER :"
+            (item.status==="archived"?
+              " ATTENTION : vous réactivez un ancien CSV, vérifiez qu'il correspond bien au personnel actuellement éligible.":"")+
+            " Pour confirmer, saisissez ACTIVER :"
           );
           if(confirmation!=="ACTIVER")return;
           activate.disabled=true;
