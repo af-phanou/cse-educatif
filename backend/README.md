@@ -631,3 +631,60 @@ rejetés : demander une exportation au format **CSV UTF-8** avant l'import.
 Le service conserve seulement les trois champs d'éligibilité ; les
 colonnes supplémentaires, si elles existent dans le fichier transmis,
 sont ignorées et non stockées.
+
+## Etape 34 — Test complet CSV d'eligibilite, avec un fichier 100 % fictif
+
+Le fichier backend/examples/DEMO_eligibilite_salaries.csv contient :
+
+~~~csv
+nom;prenom;numero_etablissement
+FICTIFTEST;ALPHA;01
+FICTIFTEST;BETA;05
+FICTIFTEST;ALPHA;01
+~~~
+
+Cela produit 3 lignes, 2 identites distinctes et 1 ligne repetee.
+Les codes 01 et 05 correspondent au repertoire existant.
+Ne pas utiliser de vrai fichier RH avant la preparation RGPD.
+
+Installer le code et lancer 94 tests :
+
+~~~bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml build api migrate
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps api npm test
+~~~
+
+Verifier l'etat initial de ce seul lot de demonstration :
+
+~~~bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/demo-roster-cli.js check
+~~~
+
+Le statut not_found signifie qu'il n'existe pas encore en base.
+Dans le panneau prive CSV http://127.0.0.1:18090/ (tunnel SSH),
+charger le fichier de demonstration depuis l'ordinateur Windows.
+Cliquer Previsualiser puis Importer ce fichier en attente.
+Le lot reste staged et ne remplace pas le lot actuellement actif.
+
+Relancer ensuite la commande check : elle doit indiquer demo_found
+et importStatus:staged. L'activation est une etape separee a confirmer.
+
+Ne pas activer la liste fictive si une liste reelle est deja active.
+Apres tout essai d'activation, il faut nettoyer le lot fictif.
+
+Commande de nettoyage protectrice :
+
+~~~bash
+sudo docker compose -f compose.yaml -f compose.override.yaml -f compose.api.yaml run --rm --no-deps migrate node src/demo-roster-cli.js cleanup --confirm-demo-cleanup
+~~~
+
+Le programme refuse de supprimer le lot si son empreinte, son nombre
+de lignes ou une valeur des trois lignes differe du CSV fictif GitHub,
+ou si un compte/dossier y fait reference. Il refuse aussi de supprimer
+un lot de demo actif lorsqu'un autre lot archive existe : retablir
+d'abord le lot d'eligibilite correct. Les traces d'audit sont conservees.
+
+N'importer aucune donnee RH reelle tant que la securite, les sauvegardes
+et la conformite RGPD du traitement au Canada ne sont pas finalisees.
