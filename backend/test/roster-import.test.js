@@ -82,7 +82,7 @@ test("ignore les colonnes supplementaires dans l'empreinte",()=>{
 test("conserve les zeros initiaux et refuse les codes malformes",()=>{
   assert.notEqual(analyzeCsv(csv).entries[0].matchKey,
     analyzeCsv(csv.replace(/;01;/g,";1;")).entries[0].matchKey);
-  assert.throws(()=>analyzeCsv("nom;prenom;numero_etablissement\nTEST;A;1;DROP\n"));
+  assert.throws(()=>analyzeCsv('nom;prenom;numero_etablissement\nTEST;A;"1;DROP"\n'));
 });
 
 test("fichier CSV vide et entetes manquants refuses",()=>{
