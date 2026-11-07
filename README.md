@@ -45,3 +45,13 @@ Le changement d'état de la case **Validation automatique des commandes payées*
 **Administration → Codes de réduction → Suivi des utilisations** affiche la date, le code, le nom du salarié, l'établissement, la commande, la facture, la remise et le statut « Appliquée » ou « Validée ». Recherche, filtrage par lot et export CSV. La validation individuelle ou groupée met à jour le statut si une utilisation a été enregistrée.
 
 **Limite de la maquette :** le suivi concerne les codes appliqués depuis l'administration de démonstration. Les anciennes utilisations déjà comptabilisées n'ont pas forcément d'identité rattachée, et la boutique salariée n'est pas encore raccordée à ce registre. En production : enregistrement transactionnel de l'utilisation à la validation de commande, identification fiable du salarié, prévention de la double utilisation et accès limité au superadministrateur.
+
+## Catalogue remanié — V18
+
+Le catalogue suit désormais le modèle **Catégorie → Produit principal → Déclinaisons**. Exemple : catégorie « Cinéma », produit « Kinépolis » avec une image, et déclinaisons « Voucher individuel », « Carte 5 entrées », « Carte 8 entrées ». Ne pas confondre le produit avec ses déclinaisons : chaque variante a son propre prix public, prix CSE, stock, option illimité et indicateur « Délai fournisseur plus important ».
+
+Dans **Administration → Catalogue** : créer d'abord les catégories, puis ouvrir « Nouveau produit », renseigner nom, catégorie, description et image, puis ajouter des déclinaisons. Enregistrer pour afficher ce catalogue dans le site public et l'espace salarié. Le logo et le design officiels d'un fournisseur ne sont pas repris ; une image peut être ajoutée par l'administrateur.
+
+Le catalogue est enregistré dans `cse_fusion_v18_catalogue`, avec un export aplati compatible avec la maquette historique via `cse_fusion_v9_catalogue`. Les images sont redimensionnées localement avant enregistrement. Le stockage reste limité au navigateur et **ne constitue ni un hébergement d'images ni une base partagée de production**. La maquette doit être testée dans le navigateur ; aucune commande ou facture réelle n'est générée.
+
+Fichiers : `catalogue-v18.js` (données communes), `catalogue-admin-v18.js` (édition), `catalogue-public-v18.js` (boutique), `catalogue-v18.css` (présentation).
