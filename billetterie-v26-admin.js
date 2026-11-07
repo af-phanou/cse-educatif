@@ -24,6 +24,7 @@ function supplierForm(){
 }
 function cardForSupplier(s,entries){
  const count=entries.filter(t=>t.supplier===s.name&&t.status==="Libre").length;
+ const reserved=entries.filter(t=>t.supplier===s.name&&t.status==="Réservé").length;
  const sold=entries.filter(t=>t.supplier===s.name&&t.status==="Vendu").length;
  return '<button type="button" class="t26-supplier '+(v26Supplier===s.name?"selected":"")+'" onclick="cseTicketSelectSupplier('+jsArg(s.name)+')">'+
  '<div class="t26-supplier-icon">▤</div><div><strong>'+escHtml(s.name)+'</strong><small>'+escHtml(s.category)+'</small></div>'+
@@ -36,8 +37,11 @@ function body(){
  if(v26Supplier&&!available.some(s=>s.name===v26Supplier))v26Supplier=available[0]?.name||"";
  const chosen=all.find(x=>x.name===v26Supplier);
  const byOrders=orders.filter(o=>orderSupplier(o)===v26Supplier);
+ const flow=window.CSETicketFlow;
+ const mapped=flow?CSECatalog.load().products.filter(p=>flow.getMapping()[String(p.id)]===v26Supplier):[];
+ const variantOptions=mapped.flatMap(p=>(p.variants||[]).map(v=>({id:v.id,label:p.name+" — "+v.name})));
  return heading("Billetterie · Gestion des PDF","Importez les billets dans le fournisseur, attribuez-les à une commande payée, retrouvez-les dans « Vendu ».","<div class=\"row\"><button class=\"btn primary\" onclick=\"cseTicketOpenImport()\">⇧ Importer des billets PDF</button><button class=\"btn\" onclick=\"cseTicketNewSupplier()\">＋ Fournisseur</button></div>")+
- '<div class="t26-summary" id="t26Summary"><div class="t26-metric"><small>PDF stockés</small><strong>…</strong></div><div class="t26-metric"><small>Billets libres</small><strong>…</strong></div><div class="t26-metric"><small>Billets vendus</small><strong>…</strong></div><div class="t26-metric"><small>Fournisseurs</small><strong>'+all.length+'</strong></div></div>'+
+ '<div class="t26-summary" id="t26Summary"><div class="t26-metric"><small>PDF stockés</small><strong>…</strong></div><div class="t26-metric"><small>Billets libres</small><strong>…</strong></div><div class="t26-metric"><small>Réservés</small><strong>…</strong></div><div class="t26-metric"><small>Billets vendus</small><strong>…</strong></div><div class="t26-metric"><small>Fournisseurs</small><strong>'+all.length+'</strong></div></div>'+
  '<div class="t26-layout"><section class="t26-sidebar"><h3>Catégories</h3><div class="t26-category-list">'+categories.map(c=>'<button class="'+(v26Cat===c?"selected":"")+'" onclick="cseTicketCategory('+jsArg(c)+')">'+escHtml(c)+'</button>').join("")+'</div>'+
  '<h3>Fournisseurs</h3><input type="search" class="t26-input" placeholder="Rechercher un fournisseur…" aria-label="Filtrer les fournisseurs" oninput="cseTicketFilterSuppliers(this.value)">'+
  '<div id="t26Suppliers">'+(available.map(s=>cardForSupplier(s,lastTickets)).join("")||'<p>Aucun fournisseur</p>')+'</div></section>'+
@@ -46,6 +50,10 @@ function body(){
  '<div class="t26-droparea" id="t26Drop" ondragover="event.preventDefault();this.classList.add(\'hover\')" ondragleave="this.classList.remove(\'hover\')" ondrop="cseTicketDrop(event)">'+
  '<div class="t26-upload-icon">⇧</div><strong>Déposer les PDF de '+escHtml(chosen.name)+' ici</strong>'+
  '<p>Glissez-déposez vos billets ou sélectionnez plusieurs fichiers PDF.</p>'+
+ '<label class="t26-field t28-variant-import">Déclinaison associée à ces PDF (facultatif)<select id="v28ImportVariant">'+
+ '<option value="">Billets génériques du fournisseur</option>'+
+ variantOptions.map(v=>'<option value="'+escHtml(v.id)+'">'+escHtml(v.label)+'</option>').join("")+
+ '</select></label>'+
  '<label class="btn primary t26-upload-btn">＋ Importer des billets PDF<input id="t26Input" type="file" accept="application/pdf,.pdf" multiple hidden onchange="cseTicketImport(this.files)"></label>'+
  '<small>PDF uniquement, 12 Mo maximum par fichier. Noms de fichiers identiques refusés pour un même fournisseur.</small></div>'+
  '<div class="t26-assign-box"><h3>Attribuer automatiquement à une commande</h3><p>Les billets libres sont attribués dans l’ordre d’import. Après l’attribution, leur nom est préfixé par prénom et nom, puis ils passent dans « Vendu ».</p>'+
@@ -55,6 +63,7 @@ function body(){
  '<button class="btn primary" onclick="cseTicketAssignOrder()">✓ Attribuer les billets</button></div><div id="t26OrderHelp" class="t26-footnote"></div>'+
  (byOrders.length?"":'<p class="t26-notice">Aucune commande fictive ne correspond à ce fournisseur. Les correspondances produit/fournisseur seront gérées par la base de données en production.</p>')+'</div>'+
  '<div class="t26-file-head"><div class="t26-tabs"><button onclick="cseTicketFolder(\'Libres\')" class="'+(v26Folder==="Libres"?"active":"")+'">▤ Libres <span id="t26FreeCount"></span></button>'+
+ '<button onclick="cseTicketFolder(\'Réservés\')" class="'+(v26Folder==="Réservés"?"active":"")+'">◷ Réservés <span id="t26ReservedCount"></span></button>'+
  '<button onclick="cseTicketFolder(\'Vendu\')" class="'+(v26Folder==="Vendu"?"active":"")+'">✓ Vendu <span id="t26SoldCount"></span></button></div>'+
  '<label class="t26-search">Rechercher <input id="t26Search" type="search" placeholder="Nom de fichier, salarié, commande…" value="'+escHtml(v26Search)+'" oninput="cseTicketSearch(this.value)"></label></div>'+
  '<div class="tablewrap"><table class="t26-table"><thead><tr><th>PDF</th><th>Commande / salarié</th><th>Date</th><th>État</th><th>Action</th></tr></thead><tbody id="t26Table"><tr><td colspan="5">Chargement...</td></tr></tbody></table></div>'+
@@ -74,23 +83,25 @@ async function refresh(){
  lastTickets=entries;
  const stats=document.getElementById("t26Summary");
  if(stats){
-  const total=entries.length,free=entries.filter(x=>x.status==="Libre").length,sold=entries.filter(x=>x.status==="Vendu").length;
-  stats.innerHTML=[["PDF stockés",total],["Billets libres",free],["Billets vendus",sold],["Fournisseurs",store.suppliers().length]].map(x=>'<div class="t26-metric"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join("");
+  const total=entries.length,free=entries.filter(x=>x.status==="Libre").length,reserved=entries.filter(x=>x.status==="Réservé").length,sold=entries.filter(x=>x.status==="Vendu").length;
+  stats.innerHTML=[["PDF stockés",total],["Billets libres",free],["Réservés",reserved],["Billets vendus",sold],["Fournisseurs",store.suppliers().length]].map(x=>'<div class="t26-metric"><small>'+x[0]+'</small><strong>'+x[1]+'</strong></div>').join("");
  }
  const all=store.suppliers().filter(s=>v26Cat==="Toutes"||s.category===v26Cat);
  const target=document.getElementById("t26Suppliers");
  if(target)target.innerHTML=all.map(x=>cardForSupplier(x,entries)).join("")||'<p class="t26-footnote">Aucun fournisseur.</p>';
  const free=entries.filter(t=>t.supplier===v26Supplier&&t.status==="Libre");
+ const reserved=entries.filter(t=>t.supplier===v26Supplier&&t.status==="Réservé");
  const sold=entries.filter(t=>t.supplier===v26Supplier&&t.status==="Vendu");
  if(document.getElementById("t26FreeCount"))document.getElementById("t26FreeCount").textContent=free.length;
+ if(document.getElementById("t26ReservedCount"))document.getElementById("t26ReservedCount").textContent=reserved.length;
  if(document.getElementById("t26SoldCount"))document.getElementById("t26SoldCount").textContent=sold.length;
  const keyword=v26Search.toLocaleLowerCase("fr");
- const list=(v26Folder==="Libres"?free:sold).filter(t=>[t.displayName,t.originalName,t.ownerName,t.orderId,t.invoice].join(" ").toLocaleLowerCase("fr").includes(keyword));
+ const list=(v26Folder==="Libres"?free:v26Folder==="Réservés"?reserved:sold).filter(t=>[t.displayName,t.originalName,t.ownerName,t.orderId,t.invoice].join(" ").toLocaleLowerCase("fr").includes(keyword));
  const tbody=document.getElementById("t26Table");
  if(tbody)tbody.innerHTML=list.map(t=>'<tr><td><b class="t26-file">▧ '+escHtml(t.displayName)+'</b><small>Original : '+escHtml(t.originalName)+'</small></td>'+
  '<td>'+(t.orderId?'<b>'+escHtml(t.orderId)+'</b><small>'+escHtml(t.ownerName||"")+' · '+escHtml(t.invoice||"")+'</small>':'—')+'</td>'+
- '<td>'+escHtml((t.soldAt||t.createdAt||"").slice(0,10))+'</td>'+
- '<td><span class="t26-status '+(t.status==="Vendu"?"sold":"free")+'">'+escHtml(t.status)+'</span></td>'+
+ '<td>'+escHtml((t.soldAt||t.reservedAt||t.createdAt||"").slice(0,10))+'</td>'+
+ '<td><span class="t26-status '+(t.status==="Vendu"?"sold":t.status==="Réservé"?"reserved":"free")+'">'+escHtml(t.status)+'</span></td>'+
  '<td><div class="t26-actions"><button class="btn" onclick="cseTicketDownload('+jsArg(t.id)+')">↓ PDF</button>'+
  (t.status==="Libre"?'<button class="btn t26-assign-btn" onclick="cseTicketChoose('+jsArg(t.id)+')">Attribuer</button>':'')+'</div></td></tr>').join("")||
  '<tr><td colspan="5" class="t26-empty">Aucun PDF dans le dossier « '+v26Folder+' ». '+(v26Folder==="Libres"?"Importez des billets ci-dessus pour commencer.":"Les billets attribués apparaîtront ici.")+'</td></tr>';
@@ -105,7 +116,10 @@ async function importTickets(files){
  try{
   if(!v26Supplier){toast("Sélectionnez d'abord un fournisseur.");return}
   const supplier=store.suppliers().find(x=>x.name===v26Supplier);
-  const result=await store.importFiles(files,v26Supplier,supplier?.category||"Autres");
+  const variantSelect=document.getElementById("v28ImportVariant");
+  const variantId=variantSelect?.value?Number(variantSelect.value):null;
+  const variant={variantId,variantName:variantSelect?.selectedOptions?.[0]?.textContent||""};
+  const result=await store.importFiles(files,v26Supplier,supplier?.category||"Autres",variant);
   v26Folder="Libres";
   const input=document.getElementById("t26Input");if(input)input.value="";
   render();
