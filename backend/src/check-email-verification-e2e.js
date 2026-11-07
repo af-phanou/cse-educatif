@@ -93,6 +93,26 @@ async function main() {
     if(role.rows[0].username!=="cse_email_verifier") {
       throw new Error("Role limite non actif.");
     }
+
+    // Verifie que ce role n'a ni acces aux comptes ni droit
+    // de changer le statut administratif des demandes.
+    const rights=await db.query([
+      "SELECT",
+      "has_column_privilege(current_user,'cse.registration_email_challenges','token_hash','INSERT') AS can_issue,",
+      "has_column_privilege(current_user,'cse.registration_email_challenges','consumed_at','UPDATE') AS can_consume,",
+      "has_column_privilege(current_user,'cse.registration_requests','email_verified_at','UPDATE') AS can_verify_email,",
+      "has_column_privilege(current_user,'cse.registration_requests','status','UPDATE') AS can_activate_request,",
+      "has_column_privilege(current_user,'cse.registration_requests','email','SELECT') AS can_read_address,",
+      "has_table_privilege(current_user,'cse.accounts','SELECT') AS can_read_accounts,",
+      "has_table_privilege(current_user,'cse.roster_entries','SELECT') AS can_read_roster"
+    ].join("\n"));
+    const rightsRow=rights.rows[0];
+    if(!rightsRow.can_issue || !rightsRow.can_consume ||
+       !rightsRow.can_verify_email || rightsRow.can_activate_request ||
+       rightsRow.can_read_address || rightsRow.can_read_accounts ||
+       rightsRow.can_read_roster) {
+      throw new Error("Privileges email trop larges ou insuffisants.");
+    }
     const issued=await issueChallengeInTransaction(db,firstId);
     if(!issued.issued || typeof issued.rawToken!=="string") {
       throw new Error("Generation du jeton impossible.");
@@ -148,6 +168,7 @@ async function main() {
       status:"ok",
       testedAgainst:"postgresql_real",
       role:"cse_email_verifier",
+      limitedPrivileges:true,
       firstUse:"verified",
       replay:"invalid_or_expired",
       expiredToken:"invalid_or_expired",
