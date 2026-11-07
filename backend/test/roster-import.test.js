@@ -168,7 +168,7 @@ test("activation archive d'abord le lot actif puis active le staged",async()=>{
 
 test("lot deja active : aucune operation d'activation",async()=>{
   const db=fakeDb({staged:false});
-  assert.deepEqual(await activateImport(db,uuid),{status:"not_staged"});
+  assert.deepEqual(await activateImport(db,uuid),{status:"not_activatable"});
   assert.equal(db.calls.at(-1).sql,"ROLLBACK");
   assert.equal(db.calls.some(x=>x.sql.includes("SET status='archived'")),false);
 });
@@ -194,4 +194,23 @@ test("une panne d'audit annule tout le changement de lot",async()=>{
 test("identifiants dangereux refuses avant toute connexion",async()=>{
   const pool={connect:async()=>{throw Error("Ne pas connecter")}};
   await assert.rejects(()=>activateImport(pool,"x' OR 1=1"),RosterError);
+});
+
+
+test("ancien lot archive peut etre reactive apres verification explicite",async()=>{
+  const db=fakeDb();
+  const original=db.client.query;
+  db.client.query=async(sql,params)=>{
+    if(sql.startsWith("SELECT id,status,rows_count FROM cse.roster_imports\nWHERE id=")){
+      db.calls.push({sql,params});
+      return {rowCount:1,rows:[{id:uuid,status:"archived",rows_count:3}]};
+    }
+    return original(sql,params);
+  };
+  const result=await activateImport(db,uuid);
+  assert.equal(result.status,"active");
+  const sql=db.calls.find(x=>x.sql.includes("SET status='active'")).sql;
+  assert.match(sql,/status IN \('staged','archived'\)/);
+  const audit=db.calls.find(x=>x.sql.includes("INSERT INTO cse.audit_events"));
+  assert.equal(JSON.parse(audit.params[3]).reactivated,true);
 });
