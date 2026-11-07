@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demandes d'inscription · Administration privée CSE Éducatif</title>
+<link rel="stylesheet" href="/review.css">
+<script defer src="/review.js"></script>
+</head>
+<body>
+<header><div class="shell brand"><span>✦ CSE Éducatif</span><small>Validation privée des inscriptions</small></div></header>
+<main class="shell">
+<h1>Demandes d'inscription des salariés</h1>
+<p class="warning"><strong>Accès provisoire par SSH.</strong> Cette interface n'est pas accessible sur votre site public. La validation administrative ne crée pas de compte actif : la vérification de l'email et l'authentification restent à déployer.</p>
+<section class="panel" id="login">
+<h2>Accéder aux demandes</h2>
+<p>Renseignez le jeton privé de validation des inscriptions, différent de celui des établissements.</p>
+<label for="token">Jeton de validation</label>
+<div class="inline"><input type="password" autocomplete="off" spellcheck="false" id="token" placeholder="Jeton secret à 64 caractères"><button type="button" id="connect">Accéder</button></div>
+</section>
+<section id="workspace" hidden>
+<div class="header-row"><div><h2>Demandes en attente <span id="count">0</span></h2><p class="muted">Seules les 100 premières demandes non expirées sont affichées. Les coordonnées téléphoniques et les adresses postales ne sont pas exposées ici.</p></div><div class="inline"><button id="refresh" class="secondary" type="button">Actualiser</button><button id="lock" class="secondary" type="button">Verrouiller</button></div></div>
+<div class="panel table-wrap">
+<table><thead><tr><th>Reçue le</th><th>Salarié</th><th>Établissement</th><th>Vérification RH</th><th>Email vérifié</th><th>Décision</th></tr></thead>
+<tbody id="requests"></tbody></table>
+<p id="empty" class="muted" hidden>Aucune demande d'inscription en attente. Les inscriptions publiques ne sont pas encore ouvertes.</p>
+</div>
+<p class="warning">Une approbation atteste uniquement de la revue administrative du dossier. Elle n'active pas l'accès salarié et ne déclenche aucun email.</p>
+</section>
+<p id="message" role="status" aria-live="polite"></p>
+</main>
+</body></html>
