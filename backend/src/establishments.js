@@ -75,7 +75,7 @@ async function listAllEstablishments(db) {
 }
 
 async function upsertEstablishments(client, rawBatch, source) {
-  if (source !== "vps_ssh") {
+  if (source !== "vps_ssh" && source !== "ssh_panel") {
     throw new Error("Source d'administration non autorisee.");
   }
   const batch = validateEstablishmentBatch(rawBatch);
