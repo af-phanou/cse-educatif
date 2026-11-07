@@ -167,6 +167,7 @@ function importPanel(){
  '<div class="v29-header"><div><div class="v29-kicker">FICHIER RH MENSUEL</div><h3>Importer les salariés depuis un CSV</h3>'+
  '<p>Rapprochement par <b>nom + prénom + numéro d’établissement</b>, sans suppression de l’historique.</p></div>'+
  '<span class="v29-pill">Local · démonstration</span></div>'+
+ '<div class="v29-sensitive"><b>⚠ Fichier RH confidentiel :</b> utilisez uniquement des données fictives dans cette maquette publique. Le véritable import mensuel sera hébergé dans un espace administrateur sécurisé sur OVH.</div>'+
  '<div class="v29-steps"><span><b>1</b> Importer le fichier</span><span><b>2</b> Contrôler les écarts</span><span><b>3</b> Valider les modifications</span></div>'+
  '<div class="v29-drop" ondragover="event.preventDefault();this.classList.add(\'v29-hover\')" ondragleave="this.classList.remove(\'v29-hover\')" ondrop="cseCsvDrop(event)">'+
  '<div class="v29-dropicon">⇧</div><div><strong>Déposez votre fichier salariés du mois</strong>'+
@@ -268,6 +269,8 @@ employeesView=function(){return importPanel()+originalViewV29()};
 const originalSaveV29=saveEmployee;
 saveEmployee=function(id){
  originalSaveV29(id);
+ const person=employees.find(e=>String(e.id)===String(id));
+ if(person?.csvManaged)person.estNumber=core.establishment({est:person.est});
  try{persist()}catch(e){toast("La fiche est modifiée mais la sauvegarde locale a échoué : "+e.message)}
 };
 const originalModalV29=employeeModal;
