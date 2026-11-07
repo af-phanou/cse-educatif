@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CSE Éducatif — Maquette générale</title>
+<style>
+:root{--blue:#1278cc;--navy:#0f2660;--line:#dce6f0;--bg:#f4f7fb}*{box-sizing:border-box}body{margin:0;font-family:Rubik,system-ui,Arial,sans-serif;background:var(--bg);color:#172b49}header{background:white;border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.brand{display:flex;gap:12px;align-items:center;font-size:21px;font-weight:800;color:var(--navy)}.logo{width:43px;height:43px;background:var(--blue);color:white;border-radius:12px;display:grid;place-items:center;font-size:24px}small{font-size:12px;color:#65768d}nav{display:flex;gap:8px;flex-wrap:wrap}button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:9px;background:white;color:var(--navy);padding:10px 14px;font-weight:650}button.active{background:var(--navy);color:white;border-color:var(--navy)}main{height:calc(100vh - 112px);min-height:540px;padding:12px 16px 16px}.frame{width:100%;height:100%;background:white;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 4px 20px #102a4410}iframe{border:0;width:100%;height:100%}.banner{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 20px;background:#e8f3fd;font-size:12px;color:#22547f}.banner a{color:#075a9e}@media(max-width:740px){header{padding:12px}nav{width:100%}nav button{flex:1;padding:10px 6px;font-size:12px}main{height:calc(100vh - 160px);padding:8px}.brand{font-size:18px}.banner{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header><div class="brand"><span class="logo" aria-hidden="true">✦</span><div>CSE Éducatif<div><small>Maquette générale · bleu & blanc</small></div></div></div>
+<nav aria-label="Espaces de la démonstration"><button data-view="public">Site public & salariés</button><button data-view="admin">Administration</button><button data-view="catalogue">Catalogue V8</button></nav></header>
+<div class="banner"><span>Mode démonstration — navigation unifiée, modules d'origine conservés. Les données ne sont pas encore synchronisées entre les espaces.</span><a id="separate" target="_blank" rel="noopener">Ouvrir cet espace seul ↗</a></div>
+<main><div class="frame"><iframe id="screen" title="Espace CSE Éducatif" loading="eager"></iframe></div></main>
+<script>
+const views={
+ public:{file:"CSE_Educatif_Site_Espace_Salarie_V1.html",title:"Site public et espace salarié"},
+ admin:{file:"CSE_Educatif_Administration_V7_Editeur_Pages(1).html",title:"Administration"},
+ catalogue:{file:"CSE_Educatif_Catalogue_V8(2).html",title:"Catalogue V8"}
+};
+const frame=document.getElementById("screen"),link=document.getElementById("separate");
+function show(view){if(!views[view])view="public";const target=views[view];frame.src=encodeURI(target.file);frame.title=target.title;link.href=encodeURI(target.file);document.querySelectorAll("[data-view]").forEach(b=>{const on=b.dataset.view===view;b.classList.toggle("active",on);b.setAttribute("aria-pressed",String(on))});history.replaceState(null,"","#"+view)}
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>show(b.dataset.view)));
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));show(location.hash.slice(1));
+</script>
+</body></html>
