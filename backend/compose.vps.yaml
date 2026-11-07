@@ -1,6 +1,6 @@
 # A copier vers /srv/cse-educatif/compose.api.yaml.
-# Complete les fichiers compose.yaml (PostgreSQL) et compose.override.yaml (Caddy).
-# L'API n'expose aucun port public ; seules les sondes privees sont disponibles.
+# Complete compose.yaml (PostgreSQL) et compose.override.yaml (Caddy).
+# API et base sans port public. Panneau d'etablissements : SSH seulement.
 services:
   api:
     build:
@@ -36,12 +36,56 @@ services:
       DB_ADMIN_USER: cse_dbadmin
       DB_ADMIN_PASSWORD_FILE: /run/secrets/postgres_password
       APP_DB_PASSWORD_FILE: /run/secrets/app_db_password
+      ESTABLISHMENTS_DB_PASSWORD_FILE: /run/secrets/establishments_db_password
     secrets:
       - postgres_password
       - app_db_password
+      - establishments_db_password
     networks:
       - cse_private
+
+  etablissements_admin:
+    build:
+      context: ./app/maquette/backend
+    command: ["node", "src/establishments-private-server.js"]
+    restart: unless-stopped
+    # Ne jamais remplacer par 0.0.0.0:8088 ! Accessible uniquement
+    # via le tunnel SSH cree depuis le PC de l'administrateur.
+    ports:
+      - "127.0.0.1:8088:3100"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "3100"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: cse_educatif
+      DB_USER: cse_site_manager
+      DB_PASSWORD_FILE: /run/secrets/establishments_db_password
+      PANEL_TOKEN_FILE: /run/secrets/establishments_panel_token
+    secrets:
+      - establishments_db_password
+      - establishments_panel_token
+    networks:
+      - cse_private
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/healthz').then(r => { if (!r.ok) process.exit(1); }).catch(() => process.exit(1));"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
 
 secrets:
   app_db_password:
     file: ./secrets/app_db_password
+  establishments_db_password:
+    file: ./secrets/establishments_db_password
+  establishments_panel_token:
+    file: ./secrets/establishments_panel_token
