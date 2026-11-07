@@ -875,3 +875,68 @@ réception ne sont pas clarifiés.
 La mise en route du SMTP devra être suivie d'un essai avec une
 adresse de test autorisée, du contrôle de la délivrabilité et d'un
 mécanisme anti-abus et de limitation des envois.
+
+
+## Étape 43 — DMARC et premier email SMTP sur OVHcloud
+
+Le DNS du domaine `cse-educatif-rxtg.fr` a ses enregistrements MX,
+SPF et DKIM (activation par OVHcloud), tandis que la requête
+`_dmarc.cse-educatif-rxtg.fr` ne renvoyait pas encore de TXT.
+
+Créer, **une seule fois**, un enregistrement TXT dans la zone DNS OVHcloud :
+
+- Sous-domaine : `_dmarc`
+- Type : `TXT`
+- Valeur : `v=DMARC1; p=none`
+- TTL : par défaut
+
+Ne pas créer une deuxième entrée DMARC si elle existe déjà.
+La politique `p=none` ne demande pas le rejet des emails, mais
+permet de démarrer l'évaluation DMARC. Une phase de contrôle
+SPF/DKIM doit précéder toute politique plus restrictive.
+Aucune modification des enregistrements MX/SPF/A existants.
+
+Sur Windows, vérifier la propagation DNS :
+
+```powershell
+Resolve-DnsName _dmarc.cse-educatif-rxtg.fr -Type TXT
+```
+
+### Test d'authentification et d'envoi SMTP sur le VPS
+
+Le fichier `backend/tools/smtp_selftest.py` réalise un **unique test
+SMTP_SSL (465) avec vérification TLS** depuis le VPS vers
+`contact@cse-educatif-rxtg.fr`, adressé **à cette même boîte**.
+Il utilise uniquement la bibliothèque standard Python, sans compte
+salarié, sans authentification de l'application et sans jeton de lien.
+
+Copier le code à jour depuis GitHub, puis dans Ubuntu :
+
+```bash
+cd /srv/cse-educatif
+git -C app/maquette pull --ff-only
+read -r -s -p 'Mot de passe de contact@cse-educatif-rxtg.fr : ' SMTP_PASSWORD
+printf '\n'
+(umask 077; printf '%s' "$SMTP_PASSWORD" > secrets/smtp_password)
+unset SMTP_PASSWORD
+chmod 600 secrets/smtp_password
+python3 app/maquette/backend/tools/smtp_selftest.py
+```
+
+**NE JAMAIS copier le mot de passe SMTP dans ce chat, dans GitHub,
+dans une capture, dans un argument de commande ni dans un fichier public.**
+Le mot de passe est saisi sans affichage et conservé en permissions
+`600` hors du dépôt, dans `/srv/cse-educatif/secrets/smtp_password`.
+Le test ne transmet le mot de passe qu'au serveur SMTP authentifié via
+TLS. Aucun port entrant supplémentaire sur le VPS.
+
+La sortie `OK : email de test remis au serveur SMTP OVHcloud.`
+signifie uniquement que le serveur SMTP l'a accepté. Il faut ensuite
+contrôler la réception dans le webmail OVHcloud, et vérifier dans
+l'en-tête du message reçu les résultats SPF/DKIM/DMARC si visibles.
+
+**Ce script n'active aucune automatisation d'envoi.** Avant production :
+gestion des secrets applicatifs, limitation des envois et des abus,
+raccordement fiable de la vérification email au flux d'inscription,
+gestion des rebonds et des reprises, sauvegardes et conformité RGPD,
+notamment pour l'hébergement des données au Canada.
